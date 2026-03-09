@@ -3,9 +3,9 @@ package com.partitionsoft.bookshelf.network.model
 import com.google.gson.annotations.SerializedName
 
 
-data class IndustryIdentifiers (
+data class IndustryIdentifiers(
 
-  @SerializedName("type"       ) var type       : String? = null,
-  @SerializedName("identifier" ) var identifier : String? = null
+    @SerializedName("type") var type: String? = null,
+    @SerializedName("identifier") var identifier: String? = null
 
 )

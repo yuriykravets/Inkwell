@@ -3,9 +3,9 @@ package com.partitionsoft.bookshelf.network.model
 import com.google.gson.annotations.SerializedName
 
 
-data class ImageLinks (
+data class ImageLinks(
 
-  @SerializedName("smallThumbnail" ) var smallThumbnail : String? = null,
-  @SerializedName("thumbnail"      ) var thumbnail      : String? = null
+    @SerializedName("smallThumbnail") var smallThumbnail: String? = null,
+    @SerializedName("thumbnail") var thumbnail: String? = null
 
 )

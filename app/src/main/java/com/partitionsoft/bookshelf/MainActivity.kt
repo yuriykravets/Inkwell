@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.core.content.ContextCompat
 import com.partitionsoft.bookshelf.ui.BooksApp
 import com.partitionsoft.bookshelf.ui.theme.BookShelfTheme
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
                     onBookClicked = {
                         ContextCompat.startActivity(
                             this,
-                            Intent(Intent.ACTION_VIEW, Uri.parse(it.previewLink)),
+                            Intent(Intent.ACTION_VIEW, it.previewLink?.toUri()),
                             null
                         )
                     }

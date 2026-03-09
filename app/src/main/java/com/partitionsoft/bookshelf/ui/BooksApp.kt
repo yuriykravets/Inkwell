@@ -1,7 +1,10 @@
 package com.partitionsoft.bookshelf.ui
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,7 +16,7 @@ import com.partitionsoft.bookshelf.data.Book
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun BooksApp(
     modifier: Modifier = Modifier,
@@ -25,7 +28,9 @@ fun BooksApp(
     val searchTextState = booksViewModel.searchTextState
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.statusBars),
         topBar = {
             MainAppBar(
                 searchWidgetState = searchWidgetState.value,
@@ -45,9 +50,10 @@ fun BooksApp(
             )
         }
     ) {
-        Surface(modifier = modifier
-            .fillMaxSize()
-            .padding(it),
+        Surface(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(it),
             color = MaterialTheme.colors.background
         ) {
             HomeScreen(

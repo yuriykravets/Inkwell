@@ -3,8 +3,8 @@ package com.partitionsoft.bookshelf.network.model
 import com.google.gson.annotations.SerializedName
 
 
-data class SearchInfo (
+data class SearchInfo(
 
-  @SerializedName("textSnippet" ) var textSnippet : String? = null
+    @SerializedName("textSnippet") var textSnippet: String? = null
 
 )

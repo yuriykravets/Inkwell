@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookshelf.R
-import com.partitionsoft.bookshelf.data.Book
+import com.partitionsoft.bookshelf.domain.model.Book
+import com.partitionsoft.bookshelf.ui.screens.BooksCard
 
 @Composable
 fun BooksGridScreen(
@@ -63,7 +64,7 @@ fun BooksCard(
             AsyncImage(
                 modifier = modifier.fillMaxWidth(),
                 model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(book.imageLink?.replace("http:", "https:"))
+                    .data(book.thumbnail?.replace("http:", "https:"))
                     .crossfade(true)
                     .build(),
                 error = painterResource(id = R.drawable.ic_book_96),

@@ -1,18 +1,19 @@
 package com.partitionsoft.bookshelf.ui
 
-import android.util.Log
-import androidx.compose.runtime.*
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.partitionsoft.bookshelf.data.Book
-import com.partitionsoft.bookshelf.data.BooksRepository
+import com.partitionsoft.bookshelf.domain.model.Book
+import com.partitionsoft.bookshelf.domain.repository.BookRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import javax.inject.Inject
 
 sealed interface BooksUiState {
     data class Success(val bookSearch: List<Book>) : BooksUiState
@@ -20,8 +21,9 @@ sealed interface BooksUiState {
     object Loading : BooksUiState
 }
 
-class BooksViewModel(
-    private val booksRepository: BooksRepository
+@HiltViewModel
+class BooksViewModel @Inject constructor(
+    private val booksRepository: BookRepository
 ) : ViewModel() {
 
     var booksUiState: BooksUiState by mutableStateOf(BooksUiState.Loading)
@@ -52,23 +54,12 @@ class BooksViewModel(
             booksUiState = BooksUiState.Loading
             booksUiState =
                 try {
-                BooksUiState.Success(booksRepository.getBooks(query, maxResults))
-            } catch (e: IOException) {
-                BooksUiState.Error
-            } catch (e: HttpException) {
-                BooksUiState.Error
-            }
-        }
-    }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = (this[APPLICATION_KEY] as com.partitionsoft.bookshelf.BooksApplication)
-                Log.d("Application key value", "Application key is $application")
-                val booksRepository = application.container.booksRepository
-                BooksViewModel(booksRepository = booksRepository)
-            }
+                    BooksUiState.Success(booksRepository.searchBooks(query, maxResults))
+                } catch (e: IOException) {
+                    BooksUiState.Error
+                } catch (e: HttpException) {
+                    BooksUiState.Error
+                }
         }
     }
 

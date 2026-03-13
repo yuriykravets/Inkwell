@@ -10,9 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.bookshelf.R
-import com.partitionsoft.bookshelf.data.Book
+import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 
@@ -22,8 +23,7 @@ fun BooksApp(
     modifier: Modifier = Modifier,
     onBookClicked: (Book) -> Unit
 ) {
-    val booksViewModel: BooksViewModel =
-        viewModel(factory = BooksViewModel.Factory)
+    val booksViewModel: BooksViewModel = hiltViewModel()
     val searchWidgetState = booksViewModel.searchWidgetState
     val searchTextState = booksViewModel.searchTextState
 

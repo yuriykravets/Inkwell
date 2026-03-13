@@ -9,7 +9,9 @@ import androidx.core.content.ContextCompat
 import com.partitionsoft.bookshelf.ui.BooksApp
 import com.partitionsoft.bookshelf.ui.theme.BookShelfTheme
 import androidx.core.net.toUri
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -2,7 +2,7 @@ package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.partitionsoft.bookshelf.data.Book
+import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.BooksUiState
 
 @Composable

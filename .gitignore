@@ -1,15 +1,28 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local config — ніколи не комітити!
 local.properties
+*.local.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keystore — ДУЖЕ важливо не комітити!
+*.jks
+*.keystore
+release/
+
+# Generated
+/captures
+.externalNativeBuild/
+.cxx/

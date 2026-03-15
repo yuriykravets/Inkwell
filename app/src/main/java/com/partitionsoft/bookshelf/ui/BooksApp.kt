@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
+import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 
@@ -35,16 +36,20 @@ fun BooksApp(
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
 
-    val uiState by booksViewModel.uiState.collectAsStateWithLifecycle()
+    val searchUiState by booksViewModel.searchUiState.collectAsStateWithLifecycle()
+    val homeUiState by booksViewModel.homeUiState.collectAsStateWithLifecycle()
+    val categoryUiState by booksViewModel.categoryUiState.collectAsStateWithLifecycle()
     val searchWidgetState by booksViewModel.searchWidgetState.collectAsStateWithLifecycle()
     val searchTextState by booksViewModel.searchTextState.collectAsStateWithLifecycle()
+    val isSearchActive =
+        searchWidgetState == BooksViewModel.SearchWidgetState.OPENED || searchTextState.isNotBlank()
 
     val scaffoldState = rememberScaffoldState()
     val errorMessage = stringResource(id = R.string.loading_failed)
     val retryLabel = stringResource(id = R.string.retry)
 
-    LaunchedEffect(uiState, errorMessage, retryLabel) {
-        if (uiState is BooksUiState.Error) {
+    LaunchedEffect(searchUiState, errorMessage, retryLabel) {
+        if (searchUiState is BooksUiState.Error) {
             val result = scaffoldState.snackbarHostState.showSnackbar(
                 message = errorMessage,
                 actionLabel = retryLabel,
@@ -69,8 +74,13 @@ fun BooksApp(
         onSearchTriggered = {
             booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.OPENED)
         },
-        booksUiState = uiState,
-        retryAction = { booksViewModel.getBooks() },
+        booksUiState = searchUiState,
+        homeUiState = homeUiState,
+        categoryUiState = categoryUiState,
+        isSearchActive = isSearchActive,
+        onCategorySelected = booksViewModel::loadCategory,
+        onHomeRetry = booksViewModel::refreshHome,
+        searchRetryAction = { booksViewModel.getBooks(searchTextState) },
         onBookClicked = onBookClicked
     )
 }
@@ -86,7 +96,12 @@ private fun BooksAppContent(
     onSearchClicked: (String) -> Unit,
     onSearchTriggered: () -> Unit,
     booksUiState: BooksUiState,
-    retryAction: () -> Unit,
+    homeUiState: HomeUiState,
+    categoryUiState: CategoryShelfUiState,
+    isSearchActive: Boolean,
+    onCategorySelected: (BookCategory) -> Unit,
+    onHomeRetry: () -> Unit,
+    searchRetryAction: () -> Unit,
     onBookClicked: (Book) -> Unit
 ) {
     Scaffold(
@@ -113,10 +128,15 @@ private fun BooksAppContent(
             color = MaterialTheme.colors.background
         ) {
             HomeScreen(
+                homeUiState = homeUiState,
+                categoryShelfUiState = categoryUiState,
                 booksUiState = booksUiState,
-                retryAction = retryAction,
+                isSearchActive = isSearchActive,
+                retryAction = onHomeRetry,
+                onCategorySelected = onCategorySelected,
                 modifier = Modifier.fillMaxSize(),
-                onBookClicked = onBookClicked
+                onBookClicked = onBookClicked,
+                onSearchRetry = searchRetryAction
             )
         }
     }
@@ -136,7 +156,17 @@ private fun BooksAppContentPreview(
         onSearchClicked = {},
         onSearchTriggered = {},
         booksUiState = BooksUiState.Success(bookSearch = books),
-        retryAction = {},
+        homeUiState = HomeUiState(
+            isLoading = false,
+            featured = books,
+            sections = emptyList(),
+            categories = emptyList()
+        ),
+        categoryUiState = CategoryShelfUiState(),
+        isSearchActive = false,
+        onCategorySelected = {},
+        onHomeRetry = {},
+        searchRetryAction = {},
         onBookClicked = {}
     )
 }

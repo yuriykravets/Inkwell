@@ -9,7 +9,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.repository.BookRepository
+import com.partitionsoft.bookshelf.domain.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -26,41 +32,38 @@ class BooksViewModel @Inject constructor(
     private val booksRepository: BookRepository
 ) : ViewModel() {
 
-    var booksUiState: BooksUiState by mutableStateOf(BooksUiState.Loading)
-        private set
+    private val _uiState = MutableStateFlow<BooksUiState>(BooksUiState.Loading)
+    val uiState: StateFlow<BooksUiState> = _uiState.asStateFlow()
 
-    private val _searchWidgetState: MutableState<SearchWidgetState> =
-        mutableStateOf(value = SearchWidgetState.CLOSED)
-    val searchWidgetState: State<SearchWidgetState> = _searchWidgetState
+    private val _searchWidgetState = MutableStateFlow(SearchWidgetState.CLOSED)
+    val searchWidgetState: StateFlow<SearchWidgetState> = _searchWidgetState.asStateFlow()
 
-    private val _searchTextState: MutableState<String> =
-        mutableStateOf(value = "")
-    val searchTextState: State<String> = _searchTextState
-
-    fun updateSearchWidgetState(newValue: SearchWidgetState) {
-        _searchWidgetState.value = newValue
-    }
-
-    fun updateSearchTextState(newValue: String) {
-        _searchTextState.value = newValue
-    }
+    private val _searchTextState = MutableStateFlow("")
+    val searchTextState: StateFlow<String> = _searchTextState.asStateFlow()
 
     init {
         getBooks()
     }
 
     fun getBooks(query: String = "book", maxResults: Int = 40) {
-        viewModelScope.launch {
-            booksUiState = BooksUiState.Loading
-            booksUiState =
-                try {
-                    BooksUiState.Success(booksRepository.searchBooks(query, maxResults))
-                } catch (e: IOException) {
-                    BooksUiState.Error
-                } catch (e: HttpException) {
-                    BooksUiState.Error
+        booksRepository
+            .searchBooks(query, maxResults)
+            .onEach { result ->
+                _uiState.value = when (result) {
+                    is Result.Loading -> BooksUiState.Loading
+                    is Result.Success -> BooksUiState.Success(result.data)
+                    is Result.Error -> BooksUiState.Error
                 }
-        }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun updateSearchTextState(newValue: String) {
+        _searchTextState.value = newValue
+    }
+
+    fun updateSearchWidgetState(newValue: SearchWidgetState) {
+        _searchWidgetState.value = newValue
     }
 
     enum class SearchWidgetState {

@@ -15,12 +15,14 @@ import androidx.compose.material.Surface
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
@@ -32,13 +34,17 @@ fun BooksApp(
     onBookClicked: (Book) -> Unit = {}
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
+
+    val uiState by booksViewModel.uiState.collectAsStateWithLifecycle()
+    val searchWidgetState by booksViewModel.searchWidgetState.collectAsStateWithLifecycle()
+    val searchTextState by booksViewModel.searchTextState.collectAsStateWithLifecycle()
+
     val scaffoldState = rememberScaffoldState()
-    val booksUiState = booksViewModel.booksUiState
     val errorMessage = stringResource(id = R.string.loading_failed)
     val retryLabel = stringResource(id = R.string.retry)
 
-    LaunchedEffect(booksUiState, errorMessage, retryLabel) {
-        if (booksUiState is BooksUiState.Error) {
+    LaunchedEffect(uiState, errorMessage, retryLabel) {
+        if (uiState is BooksUiState.Error) {
             val result = scaffoldState.snackbarHostState.showSnackbar(
                 message = errorMessage,
                 actionLabel = retryLabel,
@@ -53,8 +59,8 @@ fun BooksApp(
     BooksAppContent(
         modifier = modifier,
         scaffoldState = scaffoldState,
-        searchWidgetState = booksViewModel.searchWidgetState.value,
-        searchTextState = booksViewModel.searchTextState.value,
+        searchWidgetState = searchWidgetState,
+        searchTextState = searchTextState,
         onTextChange = booksViewModel::updateSearchTextState,
         onCloseClicked = {
             booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.CLOSED)
@@ -63,7 +69,7 @@ fun BooksApp(
         onSearchTriggered = {
             booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.OPENED)
         },
-        booksUiState = booksUiState,
+        booksUiState = uiState,
         retryAction = { booksViewModel.getBooks() },
         onBookClicked = onBookClicked
     )

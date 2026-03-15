@@ -1,0 +1,70 @@
+package com.partitionsoft.bookshelf.data.repository
+
+import com.partitionsoft.bookshelf.data.remote.api.BookService
+import com.partitionsoft.bookshelf.data.remote.dto.BookShelfDto
+import com.partitionsoft.bookshelf.data.remote.dto.ImageLinksDto
+import com.partitionsoft.bookshelf.data.remote.dto.ItemDto
+import com.partitionsoft.bookshelf.data.remote.dto.VolumeInfoDto
+import com.partitionsoft.bookshelf.domain.model.HomeFeed
+import com.partitionsoft.bookshelf.domain.result.Result
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.IOException
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class BookRepositoryImplTest {
+
+    private val service: BookService = mockk()
+    private val repository = BookRepositoryImpl(service)
+
+    @Test
+    fun `searchBooks emits loading then success`() = runTest {
+        coEvery { service.searchBooks(query = any(), maxResults = any(), orderBy = any(), filter = any(), printType = any()) } returns sampleResponse()
+
+        val emissions = repository.searchBooks("android").toList()
+
+        assertTrue(emissions.first() is Result.Loading)
+        val success = emissions[1] as Result.Success
+        assertEquals(1, success.data.size)
+        assertEquals("Sample Book", success.data.first().title)
+    }
+
+    @Test
+    fun `searchBooks emits error when api fails`() = runTest {
+        coEvery { service.searchBooks(query = any(), maxResults = any(), orderBy = any(), filter = any(), printType = any()) } throws IOException("boom")
+
+        val emissions = repository.searchBooks("android").toList()
+
+        assertTrue(emissions.first() is Result.Loading)
+        assertTrue(emissions[1] is Result.Error)
+    }
+
+    private fun sampleResponse(id: String = "1"): BookShelfDto = BookShelfDto(
+        totalItems = 1,
+        items = listOf(
+            ItemDto(
+                id = id,
+                volumeInfo = VolumeInfoDto(
+                    title = "Sample Book",
+                    authors = listOf("Author"),
+                    publishedDate = "2024",
+                    categories = listOf("Category"),
+                    averageRating = 4.0,
+                    ratingsCount = 100,
+                    imageLinksDto = ImageLinksDto(thumbnail = "http://example.com/cover.jpg"),
+                    previewLink = "http://example.com/preview",
+                    pageCount = 300,
+                    language = "en"
+                )
+            )
+        )
+    )
+}
+

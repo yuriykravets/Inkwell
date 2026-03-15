@@ -10,4 +10,8 @@
     <string name="book_cover_content_description">Cover image for %1$s</string>
     <string name="published_in">Published %1$s</string>
     <string name="error_supporting_copy">Check your connection and try again.</string>
+    <string name="home_featured_title">Featured picks</string>
+    <string name="home_categories_title">Browse by category</string>
+    <string name="home_category_shelf_title">Trending in %1$s</string>
+    <string name="home_category_error">Unable to load this category right now.</string>
 </resources>

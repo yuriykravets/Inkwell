@@ -103,16 +103,22 @@ fun BooksCard(
 }
 
 @Composable
-private fun BookCover(
+fun BookCover(
     thumbnail: String?,
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    useDefaultAspectRatio: Boolean = true
 ) {
     val placeholder = painterResource(id = R.drawable.ic_book_96)
-    Box(
-        modifier = modifier
+    val coverModifier = if (useDefaultAspectRatio) {
+        modifier
             .fillMaxWidth()
-            .aspectRatio(0.66f),
+            .aspectRatio(0.66f)
+    } else {
+        modifier.fillMaxWidth()
+    }
+    Box(
+        modifier = coverModifier,
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(

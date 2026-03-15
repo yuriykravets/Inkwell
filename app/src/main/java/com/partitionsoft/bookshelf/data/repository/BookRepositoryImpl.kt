@@ -48,6 +48,11 @@ class BookRepositoryImpl @Inject constructor(
         )
     }.flowOn(Dispatchers.IO)
 
+    override fun getBookDetails(bookId: String): Flow<Result<Book>> = flow {
+        emit(Result.Loading)
+        emit(safeApiCall { bookService.getBookById(bookId).toDomain() })
+    }.flowOn(Dispatchers.IO)
+
     override fun observeHomeFeed(): Flow<Result<HomeFeed>> = flow {
         emit(Result.Loading)
         emit(safeApiCall { buildHomeFeed() })

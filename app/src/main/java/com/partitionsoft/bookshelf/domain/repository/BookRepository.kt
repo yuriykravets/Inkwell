@@ -11,5 +11,7 @@ interface BookRepository {
 
     fun getBooksByCategory(categoryQuery: String, maxResults: Int = 10): Flow<Result<List<Book>>>
 
+    fun getBookDetails(bookId: String): Flow<Result<Book>>
+
     fun observeHomeFeed(): Flow<Result<HomeFeed>>
 }

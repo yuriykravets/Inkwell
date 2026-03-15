@@ -4,4 +4,10 @@
     <string name="retry">Retry</string>
     <string name="loading">Loading</string>
     <string name="content_description">Book</string>
+    <string name="empty_results_title">No books to show</string>
+    <string name="empty_results_supporting">Try a different search term or refresh to see the latest titles.</string>
+    <string name="try_another_search">Refresh</string>
+    <string name="book_cover_content_description">Cover image for %1$s</string>
+    <string name="published_in">Published %1$s</string>
+    <string name="error_supporting_copy">Check your connection and try again.</string>
 </resources>

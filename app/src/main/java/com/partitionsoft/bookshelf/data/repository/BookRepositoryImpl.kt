@@ -42,7 +42,7 @@ class BookRepositoryImpl @Inject constructor(
         emit(
             safeApiCall {
                 val normalizedQuery = categoryQuery.takeIf { it.startsWith(SUBJECT_QUERY_PREFIX) }
-                    ?: SUBJECT_QUERY_PREFIX + categoryQuery
+                    ?: (SUBJECT_QUERY_PREFIX + categoryQuery)
                 fetchBooks(query = normalizedQuery, maxResults = maxResults)
             }
         )

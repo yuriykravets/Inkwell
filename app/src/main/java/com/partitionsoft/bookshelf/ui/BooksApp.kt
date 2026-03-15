@@ -19,20 +19,74 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
+import com.partitionsoft.bookshelf.ui.navigation.BooksDestinations
+import com.partitionsoft.bookshelf.ui.screens.BookDetailsRoute
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
+import com.partitionsoft.bookshelf.ui.screens.ReaderRoute
 
 @Composable
 fun BooksApp(
-    modifier: Modifier = Modifier,
-    onBookClicked: (Book) -> Unit = {}
+    modifier: Modifier = Modifier
+) {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = BooksDestinations.HOME_ROUTE,
+        modifier = modifier.fillMaxSize()
+    ) {
+        composable(route = BooksDestinations.HOME_ROUTE) {
+            HomeRoute(
+                onBookClicked = {
+                    navController.navigate(BooksDestinations.detailsRoute(it.id))
+                }
+            )
+        }
+
+        composable(
+            route = BooksDestinations.DETAILS_ROUTE,
+            arguments = listOf(navArgument(BooksDestinations.BOOK_ID_ARG) { type = NavType.StringType })
+        ) {
+            BookDetailsRoute(
+                onBackClicked = navController::navigateUp,
+                onReadClicked = { bookId ->
+                    navController.navigate(BooksDestinations.readerRoute(bookId))
+                },
+                onPreviewClicked = { previewLink ->
+                    navController.context.startActivity(
+                        android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            previewLink.toUri()
+                        )
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = BooksDestinations.READER_ROUTE,
+            arguments = listOf(navArgument(BooksDestinations.BOOK_ID_ARG) { type = NavType.StringType })
+        ) {
+            ReaderRoute(onBackClicked = navController::navigateUp)
+        }
+    }
+}
+
+@Composable
+private fun HomeRoute(
+    onBookClicked: (Book) -> Unit
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
 
@@ -62,7 +116,6 @@ fun BooksApp(
     }
 
     BooksAppContent(
-        modifier = modifier,
         scaffoldState = scaffoldState,
         searchWidgetState = searchWidgetState,
         searchTextState = searchTextState,
@@ -144,9 +197,7 @@ private fun BooksAppContent(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun BooksAppContentPreview(
-    @PreviewParameter(BookPreviewParameterProvider::class) books: List<Book>
-) {
+private fun BooksAppContentPreview() {
     BooksAppContent(
         scaffoldState = rememberScaffoldState(),
         searchWidgetState = BooksViewModel.SearchWidgetState.CLOSED,
@@ -155,10 +206,10 @@ private fun BooksAppContentPreview(
         onCloseClicked = {},
         onSearchClicked = {},
         onSearchTriggered = {},
-        booksUiState = BooksUiState.Success(bookSearch = books),
+        booksUiState = BooksUiState.Success(bookSearch = emptyList()),
         homeUiState = HomeUiState(
             isLoading = false,
-            featured = books,
+            featured = emptyList(),
             sections = emptyList(),
             categories = emptyList()
         ),
@@ -171,38 +222,4 @@ private fun BooksAppContentPreview(
     )
 }
 
-private class BookPreviewParameterProvider : PreviewParameterProvider<List<Book>> {
-    override val values: Sequence<List<Book>> = sequenceOf(
-        listOf(
-            Book(
-                id = "1",
-                title = "Designing Compose",
-                authors = listOf("Jane Doe"),
-                description = null,
-                publishedDate = "2023",
-                categories = emptyList(),
-                rating = 4.5,
-                ratingsCount = 120,
-                thumbnail = null,
-                previewLink = null,
-                pageCount = 320,
-                language = "en"
-            ),
-            Book(
-                id = "2",
-                title = "Modern Android",
-                authors = listOf("John Smith", "Chris Blue"),
-                description = null,
-                publishedDate = "2022",
-                categories = emptyList(),
-                rating = 4.8,
-                ratingsCount = 220,
-                thumbnail = null,
-                previewLink = null,
-                pageCount = 280,
-                language = "en"
-            )
-        )
-    )
-}
 

@@ -14,4 +14,14 @@
     <string name="home_categories_title">Browse by category</string>
     <string name="home_category_shelf_title">Trending in %1$s</string>
     <string name="home_category_error">Unable to load this category right now.</string>
+    <string name="details_about_book">About this book</string>
+    <string name="details_published">Published:</string>
+    <string name="details_pages">Pages:</string>
+    <string name="details_language">Language:</string>
+    <string name="details_rating">Rating:</string>
+    <string name="read_preview">Read preview</string>
+    <string name="open_in_browser">Open in browser</string>
+    <string name="back">Back</string>
+    <string name="reader_title">Reader</string>
+    <string name="preview_unavailable">Preview is unavailable for this book.</string>
 </resources>

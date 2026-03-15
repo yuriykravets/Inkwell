@@ -9,7 +9,8 @@ data class BookShelfDto(
 
 data class ItemDto(
     @SerializedName("id") val id: String? = null,
-    @SerializedName("volumeInfo") val volumeInfo: VolumeInfoDto? = null
+    @SerializedName("volumeInfo") val volumeInfo: VolumeInfoDto? = null,
+    @SerializedName("accessInfo") val accessInfo: AccessInfoDto? = null
 )
 
 data class VolumeInfoDto(
@@ -29,4 +30,9 @@ data class VolumeInfoDto(
 data class ImageLinksDto(
     @SerializedName("smallThumbnail") val smallThumbnail: String? = null,
     @SerializedName("thumbnail") val thumbnail: String? = null
+)
+
+data class AccessInfoDto(
+    @SerializedName("webReaderLink") val webReaderLink: String? = null,
+    @SerializedName("embeddable") val embeddable: Boolean? = null
 )

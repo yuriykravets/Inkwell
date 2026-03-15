@@ -5,12 +5,11 @@ import com.partitionsoft.bookshelf.data.remote.dto.BookShelfDto
 import com.partitionsoft.bookshelf.data.remote.dto.ImageLinksDto
 import com.partitionsoft.bookshelf.data.remote.dto.ItemDto
 import com.partitionsoft.bookshelf.data.remote.dto.VolumeInfoDto
-import com.partitionsoft.bookshelf.domain.model.HomeFeed
+import com.partitionsoft.bookshelf.data.remote.dto.AccessInfoDto
 import com.partitionsoft.bookshelf.domain.result.Result
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -44,6 +43,30 @@ class BookRepositoryImplTest {
 
         assertTrue(emissions.first() is Result.Loading)
         assertTrue(emissions[1] is Result.Error)
+    }
+
+    @Test
+    fun `getBookDetails emits loading then mapped book`() = runTest {
+        coEvery { service.getBookById("book-1") } returns ItemDto(
+            id = "book-1",
+            volumeInfo = VolumeInfoDto(
+                title = "Reader Book",
+                authors = listOf("Author"),
+                previewLink = "http://example.com/preview"
+            ),
+            accessInfo = AccessInfoDto(
+                webReaderLink = "http://example.com/reader",
+                embeddable = true
+            )
+        )
+
+        val emissions = repository.getBookDetails("book-1").toList()
+
+        assertTrue(emissions.first() is Result.Loading)
+        val success = emissions[1] as Result.Success
+        assertEquals("book-1", success.data.id)
+        assertEquals("https://example.com/reader", success.data.webReaderLink)
+        assertTrue(success.data.embeddable)
     }
 
     private fun sampleResponse(id: String = "1"): BookShelfDto = BookShelfDto(

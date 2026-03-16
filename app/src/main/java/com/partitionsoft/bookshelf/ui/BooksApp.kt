@@ -32,6 +32,7 @@ import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.ui.navigation.BooksDestinations
 import com.partitionsoft.bookshelf.ui.screens.BookDetailsRoute
+import com.partitionsoft.bookshelf.ui.screens.BrowseBooksRoute
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 import com.partitionsoft.bookshelf.ui.screens.ReaderRoute
@@ -51,6 +52,39 @@ fun BooksApp(
             HomeRoute(
                 onBookClicked = {
                     navController.navigate(BooksDestinations.detailsRoute(it.id))
+                },
+                onBrowseRequested = { title, query, orderBy, filter ->
+                    navController.navigate(
+                        BooksDestinations.browseRoute(
+                            title = title,
+                            query = query,
+                            orderBy = orderBy,
+                            filter = filter
+                        )
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = BooksDestinations.BROWSE_ROUTE,
+            arguments = listOf(
+                navArgument(BooksDestinations.TITLE_ARG) { type = NavType.StringType },
+                navArgument(BooksDestinations.QUERY_ARG) { type = NavType.StringType },
+                navArgument(BooksDestinations.ORDER_BY_ARG) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument(BooksDestinations.FILTER_ARG) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) {
+            BrowseBooksRoute(
+                onBackClicked = navController::navigateUp,
+                onBookClicked = { book ->
+                    navController.navigate(BooksDestinations.detailsRoute(book.id))
                 }
             )
         }
@@ -86,7 +120,8 @@ fun BooksApp(
 
 @Composable
 private fun HomeRoute(
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
 
@@ -134,7 +169,8 @@ private fun HomeRoute(
         onCategorySelected = booksViewModel::loadCategory,
         onHomeRetry = booksViewModel::refreshHome,
         searchRetryAction = { booksViewModel.getBooks(searchTextState) },
-        onBookClicked = onBookClicked
+        onBookClicked = onBookClicked,
+        onBrowseRequested = onBrowseRequested
     )
 }
 
@@ -155,7 +191,8 @@ private fun BooksAppContent(
     onCategorySelected: (BookCategory) -> Unit,
     onHomeRetry: () -> Unit,
     searchRetryAction: () -> Unit,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     Scaffold(
         scaffoldState = scaffoldState,
@@ -189,7 +226,8 @@ private fun BooksAppContent(
                 onCategorySelected = onCategorySelected,
                 modifier = Modifier.fillMaxSize(),
                 onBookClicked = onBookClicked,
-                onSearchRetry = searchRetryAction
+                onSearchRetry = searchRetryAction,
+                onBrowseRequested = onBrowseRequested
             )
         }
     }
@@ -218,7 +256,8 @@ private fun BooksAppContentPreview() {
         onCategorySelected = {},
         onHomeRetry = {},
         searchRetryAction = {},
-        onBookClicked = {}
+        onBookClicked = {},
+        onBrowseRequested = { _, _, _, _ -> }
     )
 }
 

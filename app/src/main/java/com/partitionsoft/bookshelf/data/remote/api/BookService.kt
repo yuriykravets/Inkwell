@@ -11,6 +11,7 @@ interface BookService {
     @GET("volumes")
     suspend fun searchBooks(
         @Query("q") query: String,
+        @Query("startIndex") startIndex: Int = 0,
         @Query("maxResults") maxResults: Int = 40,
         @Query("orderBy") orderBy: String? = null,
         @Query("filter") filter: String? = null,

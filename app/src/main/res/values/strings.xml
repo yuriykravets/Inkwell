@@ -24,4 +24,5 @@
     <string name="back">Back</string>
     <string name="reader_title">Reader</string>
     <string name="preview_unavailable">Preview is unavailable for this book.</string>
+    <string name="see_all">See all</string>
 </resources>

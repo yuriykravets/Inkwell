@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
@@ -45,10 +45,12 @@ fun BooksGridScreen(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(
+        itemsIndexed(
             items = books,
-            key = { it.id }
-        ) { book ->
+            key = { index, book ->
+                if (book.id.isBlank()) "placeholder_$index" else "${book.id}_$index"
+            }
+        ) { _, book ->
             BooksCard(
                 book = book,
                 onBookClicked = onBookClicked

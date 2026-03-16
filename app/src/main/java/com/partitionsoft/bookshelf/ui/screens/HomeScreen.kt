@@ -23,12 +23,15 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -44,6 +47,7 @@ import com.partitionsoft.bookshelf.domain.model.SectionLayout
 import com.partitionsoft.bookshelf.ui.BooksUiState
 import com.partitionsoft.bookshelf.ui.CategoryShelfUiState
 import com.partitionsoft.bookshelf.ui.HomeUiState
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -55,7 +59,8 @@ fun HomeScreen(
     onCategorySelected: (BookCategory) -> Unit,
     modifier: Modifier = Modifier,
     onBookClicked: (Book) -> Unit,
-    onSearchRetry: () -> Unit
+    onSearchRetry: () -> Unit,
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     if (isSearchActive) {
         SearchResults(
@@ -79,7 +84,8 @@ fun HomeScreen(
             categoryShelfUiState = categoryShelfUiState,
             onCategorySelected = onCategorySelected,
             modifier = modifier,
-            onBookClicked = onBookClicked
+            onBookClicked = onBookClicked,
+            onBrowseRequested = onBrowseRequested
         )
     }
 }
@@ -118,7 +124,8 @@ private fun HomeFeedList(
     categoryShelfUiState: CategoryShelfUiState,
     onCategorySelected: (BookCategory) -> Unit,
     modifier: Modifier,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     val selectedCategory =
         remember(homeUiState.categories, categoryShelfUiState.selectedCategoryId) {
@@ -137,40 +144,63 @@ private fun HomeFeedList(
             }
         }
         if (homeUiState.categories.isNotEmpty()) {
-            item(key = "categories") {
+            item(key = "categories_block") {
                 SectionHeader(title = stringResource(id = R.string.home_categories_title))
                 CategoryRow(
                     categories = homeUiState.categories,
                     selectedId = categoryShelfUiState.selectedCategoryId,
                     onCategorySelected = onCategorySelected
                 )
-            }
-        }
-        if (categoryShelfUiState.isLoading || categoryShelfUiState.books.isNotEmpty() || categoryShelfUiState.error != null) {
-            item(key = "category_shelf") {
-                CategoryShelfSection(
-                    selectedCategory = selectedCategory,
-                    categoryShelfUiState = categoryShelfUiState,
-                    onRetry = selectedCategory?.let { { onCategorySelected(it) } },
-                    onBookClicked = onBookClicked
-                )
+                if (
+                    categoryShelfUiState.isLoading ||
+                    categoryShelfUiState.books.isNotEmpty() ||
+                    categoryShelfUiState.error != null
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    CategoryShelfSection(
+                        selectedCategory = selectedCategory,
+                        categoryShelfUiState = categoryShelfUiState,
+                        onRetry = selectedCategory?.let { { onCategorySelected(it) } },
+                        onBookClicked = onBookClicked,
+                        onBrowseRequested = onBrowseRequested
+                    )
+                }
             }
         }
         items(items = homeUiState.sections, key = { it.id }) { section ->
-            HomeSection(section = section, onBookClicked = onBookClicked)
+            HomeSection(
+                section = section,
+                onBookClicked = onBookClicked,
+                onBrowseRequested = onBrowseRequested
+            )
         }
     }
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.h6,
+private fun SectionHeader(
+    title: String,
+    actionLabel: String? = null,
+    onActionClick: (() -> Unit)? = null
+) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp)
-    )
+            .padding(bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.h6,
+            modifier = Modifier.weight(1f)
+        )
+        if (onActionClick != null && actionLabel != null) {
+            TextButton(onClick = onActionClick) {
+                Text(text = actionLabel)
+            }
+        }
+    }
 }
 
 @Composable
@@ -294,16 +324,30 @@ private fun CategoryShelfSection(
     selectedCategory: BookCategory?,
     categoryShelfUiState: CategoryShelfUiState,
     onRetry: (() -> Unit)?,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
+    var lastAutoRetriedCategoryId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(categoryShelfUiState.error, categoryShelfUiState.selectedCategoryId, onRetry) {
+        val selectedId = categoryShelfUiState.selectedCategoryId
+        if (categoryShelfUiState.error != null && onRetry != null && selectedId != lastAutoRetriedCategoryId) {
+            lastAutoRetriedCategoryId = selectedId
+            delay(900)
+            onRetry()
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
         val title = selectedCategory?.title ?: stringResource(id = R.string.home_categories_title)
-        Text(
-            text = stringResource(id = R.string.home_category_shelf_title, title),
-            style = MaterialTheme.typography.subtitle1,
-            modifier = Modifier.padding(bottom = 12.dp)
+        SectionHeader(
+            title = stringResource(id = R.string.home_category_shelf_title, title),
+            actionLabel = stringResource(id = R.string.see_all),
+            onActionClick = selectedCategory?.let {
+                { onBrowseRequested(it.title, it.query, null, null) }
+            }
         )
         AnimatedContent(
             targetState = categoryShelfUiState,
@@ -316,27 +360,39 @@ private fun CategoryShelfSection(
         ) { state ->
             when {
                 state.isLoading -> {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator()
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(id = R.string.loading),
+                            style = MaterialTheme.typography.caption,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.65f),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        LazyRow(
+                            contentPadding = PaddingValues(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(4) {
+                                ShimmerBookCard(modifier = Modifier.width(150.dp))
+                            }
+                        }
                     }
                 }
 
                 state.error != null -> {
-                    Text(
-                        text = stringResource(id = R.string.home_category_error),
-                        color = MaterialTheme.colors.error,
-                        style = MaterialTheme.typography.body2
-                    )
-                    if (onRetry != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = onRetry) {
-                            Text(text = stringResource(id = R.string.retry))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(id = R.string.home_category_error),
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f),
+                            style = MaterialTheme.typography.caption,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        LazyRow(
+                            contentPadding = PaddingValues(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(4) {
+                                ShimmerBookCard(modifier = Modifier.width(150.dp))
+                            }
                         }
                     }
                 }
@@ -366,15 +422,23 @@ private fun CategoryShelfSection(
 @Composable
 private fun HomeSection(
     section: BookSection,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = section.title,
-            style = MaterialTheme.typography.subtitle1,
-            modifier = Modifier.padding(bottom = 12.dp)
+        SectionHeader(
+            title = section.title,
+            actionLabel = stringResource(id = R.string.see_all),
+            onActionClick = {
+                onBrowseRequested(
+                    section.title,
+                    sectionQuery(section),
+                    sectionOrderBy(section),
+                    sectionFilter(section)
+                )
+            }
         )
         when (section.layout) {
             SectionLayout.Carousel -> FeaturedSection(
@@ -392,6 +456,24 @@ private fun HomeSection(
             }
         }
     }
+}
+
+private fun sectionQuery(section: BookSection): String = when (section.id) {
+    "android_trending" -> "android development"
+    "design_spotlight" -> "design thinking"
+    "business_moves" -> "subject:business"
+    "science_breakthroughs" -> "subject:science"
+    else -> section.title
+}
+
+private fun sectionOrderBy(section: BookSection): String? = when (section.id) {
+    "science_breakthroughs" -> "newest"
+    else -> null
+}
+
+private fun sectionFilter(section: BookSection): String? = when (section.id) {
+    "featured" -> "ebooks"
+    else -> null
 }
 
 @Composable

@@ -1,6 +1,10 @@
 package com.partitionsoft.bookshelf.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.partitionsoft.bookshelf.data.mapper.toDomain
+import com.partitionsoft.bookshelf.data.paging.BooksPagingSource
 import com.partitionsoft.bookshelf.data.remote.api.BookService
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
@@ -25,6 +29,40 @@ import javax.inject.Singleton
 class BookRepositoryImpl @Inject constructor(
     private val bookService: BookService
 ) : BookRepository {
+
+    override fun observePagedBooks(
+        query: String,
+        orderBy: String?,
+        filter: String?,
+        pageSize: Int
+    ): Flow<PagingData<Book>> = Pager(
+        config = PagingConfig(
+            pageSize = pageSize,
+            initialLoadSize = pageSize,
+            prefetchDistance = pageSize / 2,
+            enablePlaceholders = false
+        ),
+        pagingSourceFactory = {
+            BooksPagingSource(
+                bookService = bookService,
+                query = query,
+                orderBy = orderBy,
+                filter = filter
+            )
+        }
+    ).flow
+
+    override fun observePagedCategoryBooks(
+        category: BookCategory,
+        pageSize: Int
+    ): Flow<PagingData<Book>> {
+        val normalizedQuery = category.query.takeIf { it.startsWith(SUBJECT_QUERY_PREFIX) }
+            ?: (SUBJECT_QUERY_PREFIX + category.query)
+        return observePagedBooks(
+            query = normalizedQuery,
+            pageSize = pageSize
+        )
+    }
 
     override fun searchBooks(
         query: String,
@@ -95,10 +133,12 @@ class BookRepositoryImpl @Inject constructor(
     private suspend fun fetchBooks(
         query: String,
         maxResults: Int,
+        startIndex: Int = 0,
         orderBy: String? = null,
         filter: String? = null
     ): List<Book> = bookService.searchBooks(
         query = query,
+        startIndex = startIndex,
         maxResults = maxResults,
         orderBy = orderBy,
         filter = filter

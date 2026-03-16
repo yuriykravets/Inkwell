@@ -276,6 +276,11 @@ private fun FeaturedBookCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+            BookRating(
+                rating = book.rating,
+                ratingsCount = book.ratingsCount,
+                compact = true
+            )
             if (book.authors.isNotEmpty()) {
                 Text(
                     text = book.authors.joinToString(),
@@ -554,6 +559,11 @@ private fun HorizontalBookCard(
                 style = MaterialTheme.typography.body2,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
+            )
+            BookRating(
+                rating = book.rating,
+                ratingsCount = book.ratingsCount,
+                compact = true
             )
         }
     }

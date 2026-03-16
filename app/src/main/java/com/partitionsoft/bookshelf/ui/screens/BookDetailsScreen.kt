@@ -117,6 +117,11 @@ private fun BookDetailsContent(
                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.75f)
             )
         }
+        BookRating(
+            rating = book.rating,
+            ratingsCount = book.ratingsCount,
+            compact = false
+        )
 
         Card(elevation = 8.dp) {
             Box {
@@ -141,10 +146,6 @@ private fun BookDetailsContent(
         MetadataRow(label = "Published", value = book.publishedDate)
         MetadataRow(label = "Pages", value = book.pageCount?.toString())
         MetadataRow(label = "Language", value = book.language)
-        MetadataRow(
-            label = "Rating",
-            value = book.rating?.let { "$it (${book.ratingsCount})" }
-        )
 
         if (!book.description.isNullOrBlank()) {
             Text(text = "About this book", style = MaterialTheme.typography.subtitle1)

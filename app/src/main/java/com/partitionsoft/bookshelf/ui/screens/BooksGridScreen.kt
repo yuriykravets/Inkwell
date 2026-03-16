@@ -96,6 +96,11 @@ fun BooksCard(
                     iconSize = 20.dp
                 )
             }
+            BookRating(
+                rating = book.rating,
+                ratingsCount = book.ratingsCount,
+                compact = true
+            )
             if (book.authors.isNotEmpty()) {
                 Text(
                     text = book.authors.joinToString(),

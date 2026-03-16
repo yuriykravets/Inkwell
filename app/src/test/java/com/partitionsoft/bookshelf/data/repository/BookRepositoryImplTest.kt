@@ -25,7 +25,16 @@ class BookRepositoryImplTest {
 
     @Test
     fun `searchBooks emits loading then success`() = runTest {
-        coEvery { service.searchBooks(query = any(), maxResults = any(), orderBy = any(), filter = any(), printType = any()) } returns sampleResponse()
+        coEvery {
+            service.searchBooks(
+                query = any(),
+                startIndex = any(),
+                maxResults = any(),
+                orderBy = any(),
+                filter = any(),
+                printType = any()
+            )
+        } returns sampleResponse()
 
         val emissions = repository.searchBooks("android").toList()
 
@@ -37,7 +46,16 @@ class BookRepositoryImplTest {
 
     @Test
     fun `searchBooks emits error when api fails`() = runTest {
-        coEvery { service.searchBooks(query = any(), maxResults = any(), orderBy = any(), filter = any(), printType = any()) } throws IOException("boom")
+        coEvery {
+            service.searchBooks(
+                query = any(),
+                startIndex = any(),
+                maxResults = any(),
+                orderBy = any(),
+                filter = any(),
+                printType = any()
+            )
+        } throws IOException("boom")
 
         val emissions = repository.searchBooks("android").toList()
 

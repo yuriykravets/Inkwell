@@ -4,6 +4,7 @@ import android.net.Uri
 
 object BooksDestinations {
     const val HOME_ROUTE = "home"
+    const val FAVORITES_ROUTE = "favorites"
     const val DETAILS_ROUTE = "details/{bookId}"
     const val READER_ROUTE = "reader/{bookId}"
     const val BROWSE_ROUTE = "browse?title={title}&query={query}&orderBy={orderBy}&filter={filter}"

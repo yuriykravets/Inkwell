@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.BrowseBooksViewModel
@@ -58,11 +59,14 @@ fun BrowseBooksRoute(
     viewModel: BrowseBooksViewModel = hiltViewModel()
 ) {
     val books = viewModel.booksPagingFlow.collectAsLazyPagingItems()
+    val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
     BrowseBooksScreen(
         title = viewModel.title,
         onBackClicked = onBackClicked,
         onBookClicked = onBookClicked,
-        books = books
+        books = books,
+        favoriteIds = favoriteIds,
+        onFavoriteClicked = viewModel::onFavoriteClicked
     )
 }
 
@@ -71,7 +75,9 @@ private fun BrowseBooksScreen(
     title: String,
     onBackClicked: () -> Unit,
     onBookClicked: (Book) -> Unit,
-    books: androidx.paging.compose.LazyPagingItems<Book>
+    books: androidx.paging.compose.LazyPagingItems<Book>,
+    favoriteIds: Set<String>,
+    onFavoriteClicked: (Book) -> Unit
 ) {
     var appendRetryCount by remember { mutableStateOf(0) }
     val appendState = books.loadState.append
@@ -147,7 +153,11 @@ private fun BrowseBooksScreen(
                     ) { index ->
                         val item = books[index]
                         if (item != null) {
-                            BooksCard(book = item, onBookClicked = onBookClicked)
+                            BooksCard(
+                                book = item.copy(isFavorite = favoriteIds.contains(item.id)),
+                                onBookClicked = onBookClicked,
+                                onFavoriteClicked = onFavoriteClicked
+                            )
                         }
                     }
 

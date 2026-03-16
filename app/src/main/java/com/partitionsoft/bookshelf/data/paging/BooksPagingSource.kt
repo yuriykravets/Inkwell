@@ -13,7 +13,8 @@ class BooksPagingSource(
     private val bookService: BookService,
     private val query: String,
     private val orderBy: String? = null,
-    private val filter: String? = null
+    private val filter: String? = null,
+    private val favoriteIdsProvider: suspend () -> Set<String>
 ) : PagingSource<Int, Book>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Book> {
@@ -28,7 +29,11 @@ class BooksPagingSource(
                 orderBy = orderBy,
                 filter = filter
             )
-            val books = response.items.orEmpty().map { it.toDomain() }
+            val favoriteIds = favoriteIdsProvider()
+            val books = response.items.orEmpty().map { item ->
+                val book = item.toDomain()
+                book.copy(isFavorite = favoriteIds.contains(book.id))
+            }
             val totalItems = response.totalItems ?: 0
             val nextIndex = startIndex + books.size
 

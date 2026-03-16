@@ -33,6 +33,7 @@ import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.ui.navigation.BooksDestinations
 import com.partitionsoft.bookshelf.ui.screens.BookDetailsRoute
 import com.partitionsoft.bookshelf.ui.screens.BrowseBooksRoute
+import com.partitionsoft.bookshelf.ui.screens.FavoritesRoute
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 import com.partitionsoft.bookshelf.ui.screens.ReaderRoute
@@ -62,6 +63,18 @@ fun BooksApp(
                             filter = filter
                         )
                     )
+                },
+                onFavoritesClicked = {
+                    navController.navigate(BooksDestinations.FAVORITES_ROUTE)
+                }
+            )
+        }
+
+        composable(route = BooksDestinations.FAVORITES_ROUTE) {
+            FavoritesRoute(
+                onBackClicked = navController::navigateUp,
+                onBookClicked = { book ->
+                    navController.navigate(BooksDestinations.detailsRoute(book.id))
                 }
             )
         }
@@ -121,7 +134,8 @@ fun BooksApp(
 @Composable
 private fun HomeRoute(
     onBookClicked: (Book) -> Unit,
-    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
+    onFavoritesClicked: () -> Unit
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
 
@@ -162,6 +176,7 @@ private fun HomeRoute(
         onSearchTriggered = {
             booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.OPENED)
         },
+        onFavoritesClicked = onFavoritesClicked,
         booksUiState = searchUiState,
         homeUiState = homeUiState,
         categoryUiState = categoryUiState,
@@ -170,6 +185,7 @@ private fun HomeRoute(
         onHomeRetry = booksViewModel::refreshHome,
         searchRetryAction = { booksViewModel.getBooks(searchTextState) },
         onBookClicked = onBookClicked,
+        onFavoriteClicked = booksViewModel::onFavoriteClicked,
         onBrowseRequested = onBrowseRequested
     )
 }
@@ -184,6 +200,7 @@ private fun BooksAppContent(
     onCloseClicked: () -> Unit,
     onSearchClicked: (String) -> Unit,
     onSearchTriggered: () -> Unit,
+    onFavoritesClicked: () -> Unit,
     booksUiState: BooksUiState,
     homeUiState: HomeUiState,
     categoryUiState: CategoryShelfUiState,
@@ -192,6 +209,7 @@ private fun BooksAppContent(
     onHomeRetry: () -> Unit,
     searchRetryAction: () -> Unit,
     onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     Scaffold(
@@ -207,7 +225,8 @@ private fun BooksAppContent(
                 onTextChange = onTextChange,
                 onCloseClicked = onCloseClicked,
                 onSearchClicked = onSearchClicked,
-                onSearchTriggered = onSearchTriggered
+                onSearchTriggered = onSearchTriggered,
+                onFavoritesClicked = onFavoritesClicked
             )
         }
     ) { paddingValues ->
@@ -226,6 +245,7 @@ private fun BooksAppContent(
                 onCategorySelected = onCategorySelected,
                 modifier = Modifier.fillMaxSize(),
                 onBookClicked = onBookClicked,
+                onFavoriteClicked = onFavoriteClicked,
                 onSearchRetry = searchRetryAction,
                 onBrowseRequested = onBrowseRequested
             )
@@ -244,6 +264,7 @@ private fun BooksAppContentPreview() {
         onCloseClicked = {},
         onSearchClicked = {},
         onSearchTriggered = {},
+        onFavoritesClicked = {},
         booksUiState = BooksUiState.Success(bookSearch = emptyList()),
         homeUiState = HomeUiState(
             isLoading = false,
@@ -257,6 +278,7 @@ private fun BooksAppContentPreview() {
         onHomeRetry = {},
         searchRetryAction = {},
         onBookClicked = {},
+        onFavoriteClicked = {},
         onBrowseRequested = { _, _, _, _ -> }
     )
 }

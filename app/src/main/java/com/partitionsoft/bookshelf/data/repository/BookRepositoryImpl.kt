@@ -3,6 +3,8 @@ package com.partitionsoft.bookshelf.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.partitionsoft.bookshelf.data.local.FavoriteBookDao
+import com.partitionsoft.bookshelf.data.mapper.toFavoriteEntity
 import com.partitionsoft.bookshelf.data.mapper.toDomain
 import com.partitionsoft.bookshelf.data.paging.BooksPagingSource
 import com.partitionsoft.bookshelf.data.remote.api.BookService
@@ -18,8 +20,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -27,7 +31,8 @@ import javax.inject.Singleton
 
 @Singleton
 class BookRepositoryImpl @Inject constructor(
-    private val bookService: BookService
+    private val bookService: BookService,
+    private val favoriteBookDao: FavoriteBookDao
 ) : BookRepository {
 
     override fun observePagedBooks(
@@ -47,7 +52,8 @@ class BookRepositoryImpl @Inject constructor(
                 bookService = bookService,
                 query = query,
                 orderBy = orderBy,
-                filter = filter
+                filter = filter,
+                favoriteIdsProvider = { favoriteBookDao.getFavoriteIdsOnce().toSet() }
             )
         }
     ).flow
@@ -69,7 +75,17 @@ class BookRepositoryImpl @Inject constructor(
         maxResults: Int
     ): Flow<Result<List<Book>>> = flow {
         emit(Result.Loading)
-        emit(safeApiCall { fetchBooks(query = query, maxResults = maxResults) })
+        when (val result = safeApiCall { fetchBooks(query = query, maxResults = maxResults) }) {
+            is Result.Success -> {
+                emitAll(
+                    observeFavoriteIds().map { favoriteIds ->
+                        Result.Success(result.data.markFavorites(favoriteIds))
+                    }
+                )
+            }
+            is Result.Error -> emit(result)
+            Result.Loading -> Unit
+        }
     }.flowOn(Dispatchers.IO)
 
     override fun getBooksByCategory(
@@ -77,24 +93,82 @@ class BookRepositoryImpl @Inject constructor(
         maxResults: Int
     ): Flow<Result<List<Book>>> = flow {
         emit(Result.Loading)
-        emit(
-            safeApiCall {
-                val normalizedQuery = categoryQuery.takeIf { it.startsWith(SUBJECT_QUERY_PREFIX) }
-                    ?: (SUBJECT_QUERY_PREFIX + categoryQuery)
-                fetchBooks(query = normalizedQuery, maxResults = maxResults)
+        when (
+            val result = safeApiCall {
+                fetchBooks(query = normalizeCategoryQuery(categoryQuery), maxResults = maxResults)
             }
-        )
+        ) {
+            is Result.Success -> {
+                emitAll(
+                    observeFavoriteIds().map { favoriteIds ->
+                        Result.Success(result.data.markFavorites(favoriteIds))
+                    }
+                )
+            }
+            is Result.Error -> emit(result)
+            Result.Loading -> Unit
+        }
     }.flowOn(Dispatchers.IO)
 
     override fun getBookDetails(bookId: String): Flow<Result<Book>> = flow {
         emit(Result.Loading)
-        emit(safeApiCall { bookService.getBookById(bookId).toDomain() })
+        try {
+            val remoteBook = bookService.getBookById(bookId).toDomain()
+            emitAll(
+                observeFavoriteIds().map { favoriteIds ->
+                    Result.Success(remoteBook.copy(isFavorite = favoriteIds.contains(remoteBook.id)))
+                }
+            )
+        } catch (e: IOException) {
+            val localFallback = favoriteBookDao.getFavoriteById(bookId)?.toDomain()
+            if (localFallback != null) {
+                emit(Result.Success(localFallback))
+            } else {
+                emit(Result.Error(e))
+            }
+        } catch (e: HttpException) {
+            val localFallback = favoriteBookDao.getFavoriteById(bookId)?.toDomain()
+            if (localFallback != null) {
+                emit(Result.Success(localFallback))
+            } else {
+                emit(Result.Error(e))
+            }
+        }
     }.flowOn(Dispatchers.IO)
 
     override fun observeHomeFeed(): Flow<Result<HomeFeed>> = flow {
         emit(Result.Loading)
-        emit(safeApiCall { buildHomeFeed() })
+        when (val result = safeApiCall { buildHomeFeed() }) {
+            is Result.Success -> {
+                emitAll(
+                    observeFavoriteIds().map { favoriteIds ->
+                        Result.Success(result.data.markFavorites(favoriteIds))
+                    }
+                )
+            }
+            is Result.Error -> emit(result)
+            Result.Loading -> Unit
+        }
     }.flowOn(Dispatchers.IO)
+
+    override fun observeFavoriteBooks(): Flow<List<Book>> =
+        favoriteBookDao.observeFavorites().map { entities ->
+            entities.map { it.toDomain() }
+        }
+
+    override fun observeFavoriteIds(): Flow<Set<String>> =
+        favoriteBookDao.observeFavoriteIds().map { it.toSet() }
+
+    override suspend fun toggleFavorite(book: Book) {
+        if (book.id.isBlank()) return
+        if (favoriteBookDao.isFavorite(book.id)) {
+            favoriteBookDao.deleteFavoriteById(book.id)
+        } else {
+            favoriteBookDao.upsertFavorite(book.toFavoriteEntity())
+        }
+    }
+
+    override suspend fun isFavorite(bookId: String): Boolean = favoriteBookDao.isFavorite(bookId)
 
     private suspend fun buildHomeFeed(): HomeFeed = coroutineScope {
         val featuredDeferred = async {
@@ -143,6 +217,21 @@ class BookRepositoryImpl @Inject constructor(
         orderBy = orderBy,
         filter = filter
     ).items?.map { it.toDomain() } ?: emptyList()
+
+    private fun normalizeCategoryQuery(categoryQuery: String): String =
+        categoryQuery.takeIf { it.startsWith(SUBJECT_QUERY_PREFIX) }
+            ?: (SUBJECT_QUERY_PREFIX + categoryQuery)
+
+    private fun List<Book>.markFavorites(favoriteIds: Set<String>): List<Book> = map { book ->
+        book.copy(isFavorite = favoriteIds.contains(book.id))
+    }
+
+    private fun HomeFeed.markFavorites(favoriteIds: Set<String>): HomeFeed = copy(
+        featured = featured.markFavorites(favoriteIds),
+        sections = sections.map { section ->
+            section.copy(books = section.books.markFavorites(favoriteIds))
+        }
+    )
 
     private suspend fun <T> safeApiCall(call: suspend () -> T): Result<T> =
         try {

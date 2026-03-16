@@ -28,7 +28,7 @@ class ReaderViewModel @Inject constructor(
     private val booksRepository: BookRepository
 ) : ViewModel() {
 
-    private val bookId: String = checkNotNull(savedStateHandle[BooksDestinations.BOOK_ID_ARG])
+    private val bookId: String? = savedStateHandle[BooksDestinations.BOOK_ID_ARG]
 
     private val _uiState = MutableStateFlow<ReaderUiState>(ReaderUiState.Loading)
     val uiState: StateFlow<ReaderUiState> = _uiState.asStateFlow()
@@ -38,8 +38,13 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun loadReader() {
+        val safeBookId = bookId
+        if (safeBookId.isNullOrBlank()) {
+            _uiState.value = ReaderUiState.Error
+            return
+        }
         booksRepository
-            .getBookDetails(bookId)
+            .getBookDetails(safeBookId)
             .onEach { result ->
                 _uiState.value = when (result) {
                     is Result.Loading -> ReaderUiState.Loading

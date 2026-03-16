@@ -16,6 +16,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,12 +28,21 @@ import androidx.compose.ui.unit.dp
 import com.example.bookshelf.R
 
 @Composable
-fun ClosedAppBar(onSearchClicked: () -> Unit) {
+fun ClosedAppBar(
+    onSearchClicked: () -> Unit,
+    onFavoritesClicked: () -> Unit
+) {
     TopAppBar(
         backgroundColor = MaterialTheme.colors.surface,
         contentColor = MaterialTheme.colors.onSurface,
         title = { Text(text = stringResource(id = R.string.app_name)) },
         actions = {
+            IconButton(onClick = onFavoritesClicked) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = stringResource(id = R.string.favorites_title)
+                )
+            }
             IconButton(onClick = onSearchClicked) {
                 Icon(
                     imageVector = Icons.Filled.Search,

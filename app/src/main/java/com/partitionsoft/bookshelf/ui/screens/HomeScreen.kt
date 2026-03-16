@@ -59,6 +59,7 @@ fun HomeScreen(
     onCategorySelected: (BookCategory) -> Unit,
     modifier: Modifier = Modifier,
     onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit,
     onSearchRetry: () -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
@@ -67,7 +68,8 @@ fun HomeScreen(
             booksUiState = booksUiState,
             onRetry = onSearchRetry,
             modifier = modifier,
-            onBookClicked = onBookClicked
+            onBookClicked = onBookClicked,
+            onFavoriteClicked = onFavoriteClicked
         )
         return
     }
@@ -85,6 +87,7 @@ fun HomeScreen(
             onCategorySelected = onCategorySelected,
             modifier = modifier,
             onBookClicked = onBookClicked,
+            onFavoriteClicked = onFavoriteClicked,
             onBrowseRequested = onBrowseRequested
         )
     }
@@ -95,7 +98,8 @@ private fun SearchResults(
     booksUiState: BooksUiState,
     onRetry: () -> Unit,
     modifier: Modifier,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit
 ) {
     when (booksUiState) {
         BooksUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
@@ -106,7 +110,8 @@ private fun SearchResults(
                 BooksGridScreen(
                     books = booksUiState.bookSearch,
                     modifier = Modifier.fillMaxSize(),
-                    onBookClicked = onBookClicked
+                    onBookClicked = onBookClicked,
+                    onFavoriteClicked = onFavoriteClicked
                 )
             }
         }
@@ -125,6 +130,7 @@ private fun HomeFeedList(
     onCategorySelected: (BookCategory) -> Unit,
     modifier: Modifier,
     onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     val selectedCategory =
@@ -140,7 +146,10 @@ private fun HomeFeedList(
         if (homeUiState.featured.isNotEmpty()) {
             item(key = "featured") {
                 SectionHeader(title = stringResource(id = R.string.home_featured_title))
-                FeaturedSection(books = homeUiState.featured, onBookClicked = onBookClicked)
+                FeaturedSection(
+                    books = homeUiState.featured, onBookClicked = onBookClicked,
+                    onFavoriteClicked = onFavoriteClicked
+                )
             }
         }
         if (homeUiState.categories.isNotEmpty()) {
@@ -162,6 +171,7 @@ private fun HomeFeedList(
                         categoryShelfUiState = categoryShelfUiState,
                         onRetry = selectedCategory?.let { { onCategorySelected(it) } },
                         onBookClicked = onBookClicked,
+                        onFavoriteClicked = onFavoriteClicked,
                         onBrowseRequested = onBrowseRequested
                     )
                 }
@@ -171,6 +181,7 @@ private fun HomeFeedList(
             HomeSection(
                 section = section,
                 onBookClicked = onBookClicked,
+                onFavoriteClicked = onFavoriteClicked,
                 onBrowseRequested = onBrowseRequested
             )
         }
@@ -206,14 +217,19 @@ private fun SectionHeader(
 @Composable
 private fun FeaturedSection(
     books: List<Book>,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit
 ) {
     LazyRow(
         contentPadding = PaddingValues(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(books, key = { it.id }) { book ->
-            FeaturedBookCard(book = book, onBookClicked = onBookClicked)
+            FeaturedBookCard(
+                book = book,
+                onBookClicked = onBookClicked,
+                onFavoriteClicked = onFavoriteClicked
+            )
         }
     }
 }
@@ -221,7 +237,8 @@ private fun FeaturedSection(
 @Composable
 private fun FeaturedBookCard(
     book: Book,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -231,6 +248,18 @@ private fun FeaturedBookCard(
         backgroundColor = MaterialTheme.colors.surface
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                FavoriteToggleButton(
+                    isFavorite = book.isFavorite,
+                    onClick = { onFavoriteClicked(book) },
+                    style = FavoriteToggleStyle.Compact,
+                    buttonSize = 36.dp,
+                    iconSize = 20.dp
+                )
+            }
             BookCover(
                 thumbnail = book.thumbnail,
                 title = book.title,
@@ -325,6 +354,7 @@ private fun CategoryShelfSection(
     categoryShelfUiState: CategoryShelfUiState,
     onRetry: (() -> Unit)?,
     onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     var lastAutoRetriedCategoryId by remember { mutableStateOf<String?>(null) }
@@ -410,7 +440,11 @@ private fun CategoryShelfSection(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(state.books, key = { it.id }) { book ->
-                            HorizontalBookCard(book = book, onBookClicked = onBookClicked)
+                            HorizontalBookCard(
+                                book = book,
+                                onBookClicked = onBookClicked,
+                                onFavoriteClicked = onFavoriteClicked
+                            )
                         }
                     }
                 }
@@ -423,6 +457,7 @@ private fun CategoryShelfSection(
 private fun HomeSection(
     section: BookSection,
     onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
 ) {
     Column(
@@ -443,7 +478,8 @@ private fun HomeSection(
         when (section.layout) {
             SectionLayout.Carousel -> FeaturedSection(
                 books = section.books,
-                onBookClicked = onBookClicked
+                onBookClicked = onBookClicked,
+                onFavoriteClicked = onFavoriteClicked
             )
 
             SectionLayout.Horizontal -> LazyRow(
@@ -451,7 +487,11 @@ private fun HomeSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(section.books, key = { it.id }) { book ->
-                    HorizontalBookCard(book = book, onBookClicked = onBookClicked)
+                    HorizontalBookCard(
+                        book = book,
+                        onBookClicked = onBookClicked,
+                        onFavoriteClicked = onFavoriteClicked
+                    )
                 }
             }
         }
@@ -479,7 +519,8 @@ private fun sectionFilter(section: BookSection): String? = when (section.id) {
 @Composable
 private fun HorizontalBookCard(
     book: Book,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -487,6 +528,18 @@ private fun HorizontalBookCard(
             .clickable { onBookClicked(book) }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                FavoriteToggleButton(
+                    isFavorite = book.isFavorite,
+                    onClick = { onFavoriteClicked(book) },
+                    style = FavoriteToggleStyle.Compact,
+                    buttonSize = 34.dp,
+                    iconSize = 20.dp
+                )
+            }
             BookCover(
                 thumbnail = book.thumbnail,
                 title = book.title,

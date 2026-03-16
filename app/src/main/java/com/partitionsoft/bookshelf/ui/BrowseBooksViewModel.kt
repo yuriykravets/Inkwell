@@ -11,12 +11,16 @@ import com.partitionsoft.bookshelf.domain.repository.BookRepository
 import com.partitionsoft.bookshelf.ui.navigation.BooksDestinations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class BrowseBooksViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    repository: BookRepository
+    private val repository: BookRepository
 ) : ViewModel() {
 
     val title: String = savedStateHandle.get<String>(BooksDestinations.TITLE_ARG)
@@ -45,6 +49,16 @@ class BrowseBooksViewModel @Inject constructor(
             pageSize = PAGE_SIZE
         )
         .cachedIn(viewModelScope)
+
+    val favoriteIds: StateFlow<Set<String>> = repository
+        .observeFavoriteIds()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+    fun onFavoriteClicked(book: Book) {
+        viewModelScope.launch {
+            repository.toggleFavorite(book)
+        }
+    }
 
     private companion object {
         private const val PAGE_SIZE = 15

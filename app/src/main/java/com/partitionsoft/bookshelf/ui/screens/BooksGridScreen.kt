@@ -34,7 +34,8 @@ import com.partitionsoft.bookshelf.domain.model.Book
 fun BooksGridScreen(
     books: List<Book>,
     modifier: Modifier = Modifier,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit = {}
 ) {
     val gridState = rememberLazyGridState()
     LazyVerticalGrid(
@@ -53,7 +54,8 @@ fun BooksGridScreen(
         ) { _, book ->
             BooksCard(
                 book = book,
-                onBookClicked = onBookClicked
+                onBookClicked = onBookClicked,
+                onFavoriteClicked = onFavoriteClicked
             )
         }
     }
@@ -63,7 +65,8 @@ fun BooksGridScreen(
 fun BooksCard(
     book: Book,
     modifier: Modifier = Modifier,
-    onBookClicked: (Book) -> Unit
+    onBookClicked: (Book) -> Unit,
+    onFavoriteClicked: (Book) -> Unit = {}
 ) {
     Card(
         modifier = modifier
@@ -83,6 +86,16 @@ fun BooksCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                FavoriteToggleButton(
+                    isFavorite = book.isFavorite,
+                    onClick = { onFavoriteClicked(book) },
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    style = FavoriteToggleStyle.Compact,
+                    buttonSize = 34.dp,
+                    iconSize = 20.dp
+                )
+            }
             if (book.authors.isNotEmpty()) {
                 Text(
                     text = book.authors.joinToString(),

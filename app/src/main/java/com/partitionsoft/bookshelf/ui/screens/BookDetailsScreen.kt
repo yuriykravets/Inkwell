@@ -1,6 +1,7 @@
 package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,17 +22,21 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.BookDetailsUiState
 import com.partitionsoft.bookshelf.ui.BookDetailsViewModel
@@ -76,7 +81,8 @@ fun BookDetailsRoute(
                 book = state.book,
                 contentPadding = paddingValues,
                 onReadClicked = onReadClicked,
-                onPreviewClicked = onPreviewClicked
+                onPreviewClicked = onPreviewClicked,
+                onFavoriteClicked = viewModel::onFavoriteClicked
             )
         }
     }
@@ -87,7 +93,8 @@ private fun BookDetailsContent(
     book: Book,
     contentPadding: PaddingValues,
     onReadClicked: (String) -> Unit,
-    onPreviewClicked: (String) -> Unit
+    onPreviewClicked: (String) -> Unit,
+    onFavoriteClicked: (Book) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -112,14 +119,23 @@ private fun BookDetailsContent(
         }
 
         Card(elevation = 8.dp) {
-            BookCover(
-                thumbnail = book.thumbnail,
-                title = book.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(280.dp),
-                useDefaultAspectRatio = false
-            )
+            Box {
+                BookCover(
+                    thumbnail = book.thumbnail,
+                    title = book.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp),
+                    useDefaultAspectRatio = false
+                )
+                FavoriteCoverButton(
+                    isFavorite = book.isFavorite,
+                    onClick = { onFavoriteClicked(book) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp)
+                )
+            }
         }
 
         MetadataRow(label = "Published", value = book.publishedDate)
@@ -153,6 +169,22 @@ private fun BookDetailsContent(
             }
         }
     }
+}
+
+@Composable
+private fun FavoriteCoverButton(
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FavoriteToggleButton(
+        isFavorite = isFavorite,
+        onClick = onClick,
+        modifier = modifier,
+        style = FavoriteToggleStyle.Overlay,
+        buttonSize = 50.dp,
+        iconSize = 28.dp
+    )
 }
 
 @Composable

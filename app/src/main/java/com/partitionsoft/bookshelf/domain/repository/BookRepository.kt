@@ -28,4 +28,12 @@ interface BookRepository {
         category: BookCategory,
         pageSize: Int = 15
     ): Flow<PagingData<Book>>
+
+    fun observeFavoriteBooks(): Flow<List<Book>>
+
+    fun observeFavoriteIds(): Flow<Set<String>>
+
+    suspend fun toggleFavorite(book: Book)
+
+    suspend fun isFavorite(bookId: String): Boolean
 }

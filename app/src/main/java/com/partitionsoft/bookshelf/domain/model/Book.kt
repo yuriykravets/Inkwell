@@ -14,5 +14,6 @@ data class Book(
     val webReaderLink: String? = null,
     val embeddable: Boolean = false,
     val pageCount: Int?,
-    val language: String?
+    val language: String?,
+    val isFavorite: Boolean = false
 )

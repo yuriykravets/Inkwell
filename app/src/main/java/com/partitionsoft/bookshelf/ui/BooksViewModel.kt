@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 sealed interface BooksUiState {
@@ -142,6 +143,12 @@ class BooksViewModel @Inject constructor(
 
     fun updateSearchWidgetState(newValue: SearchWidgetState) {
         _searchWidgetState.value = newValue
+    }
+
+    fun onFavoriteClicked(book: Book) {
+        viewModelScope.launch {
+            booksRepository.toggleFavorite(book)
+        }
     }
 
     enum class SearchWidgetState {

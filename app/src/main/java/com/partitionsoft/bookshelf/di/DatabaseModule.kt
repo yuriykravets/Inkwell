@@ -22,7 +22,9 @@ object DatabaseModule {
             context,
             BooksDatabase::class.java,
             "bookshelf.db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     @Singleton

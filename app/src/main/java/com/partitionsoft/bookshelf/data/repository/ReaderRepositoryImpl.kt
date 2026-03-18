@@ -25,6 +25,9 @@ class ReaderRepositoryImpl @Inject constructor(
     override fun observeLibrary(): Flow<List<ReaderDocument>> =
         readerDocumentDao.observeLibrary().map { rows -> rows.map { it.toDomain() } }
 
+    override fun observeContinueReading(): Flow<ReaderDocument?> =
+        readerDocumentDao.observeContinueReading().map { row -> row?.toDomain() }
+
     override suspend fun importDocument(uri: Uri): Result<ReaderDocument> = runCatching {
         val mimeType = contentResolver.getType(uri)
         val title = contentResolver.query(

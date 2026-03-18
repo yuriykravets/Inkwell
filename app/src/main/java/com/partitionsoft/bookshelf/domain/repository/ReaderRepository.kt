@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 interface ReaderRepository {
     fun observeLibrary(): Flow<List<ReaderDocument>>
 
+    fun observeContinueReading(): Flow<ReaderDocument?>
+
     suspend fun importDocument(uri: Uri): Result<ReaderDocument>
 
     suspend fun getDocument(documentId: Long): ReaderDocument?

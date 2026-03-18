@@ -43,6 +43,8 @@ import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.domain.model.BookSection
+import com.partitionsoft.bookshelf.domain.model.ReaderDocument
+import com.partitionsoft.bookshelf.domain.model.ReaderDocumentFormat
 import com.partitionsoft.bookshelf.domain.model.SectionLayout
 import com.partitionsoft.bookshelf.ui.BooksUiState
 import com.partitionsoft.bookshelf.ui.CategoryShelfUiState
@@ -61,7 +63,8 @@ fun HomeScreen(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit,
     onSearchRetry: () -> Unit,
-    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
+    onContinueReadingClicked: (Long) -> Unit
 ) {
     if (isSearchActive) {
         SearchResults(
@@ -88,7 +91,8 @@ fun HomeScreen(
             modifier = modifier,
             onBookClicked = onBookClicked,
             onFavoriteClicked = onFavoriteClicked,
-            onBrowseRequested = onBrowseRequested
+            onBrowseRequested = onBrowseRequested,
+            onContinueReadingClicked = onContinueReadingClicked
         )
     }
 }
@@ -131,7 +135,8 @@ private fun HomeFeedList(
     modifier: Modifier,
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit,
-    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
+    onContinueReadingClicked: (Long) -> Unit
 ) {
     val selectedCategory =
         remember(homeUiState.categories, categoryShelfUiState.selectedCategoryId) {
@@ -143,6 +148,16 @@ private fun HomeFeedList(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp)
     ) {
+        homeUiState.continueReading?.let { document ->
+            item(key = "continue_reading") {
+                SectionHeader(title = stringResource(id = R.string.home_continue_reading_title))
+                ContinueReadingCard(
+                    document = document,
+                    onOpen = { onContinueReadingClicked(document.id) }
+                )
+            }
+        }
+
         if (homeUiState.featured.isNotEmpty()) {
             item(key = "featured") {
                 SectionHeader(title = stringResource(id = R.string.home_featured_title))
@@ -185,6 +200,64 @@ private fun HomeFeedList(
                 onBrowseRequested = onBrowseRequested
             )
         }
+    }
+}
+
+@Composable
+private fun ContinueReadingCard(
+    document: ReaderDocument,
+    onOpen: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen),
+        elevation = 8.dp,
+        backgroundColor = MaterialTheme.colors.primary.copy(alpha = 0.08f)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = document.title,
+                style = MaterialTheme.typography.subtitle1,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = continueReadingProgressLabel(document),
+                style = MaterialTheme.typography.caption,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f)
+            )
+            TextButton(onClick = onOpen) {
+                Text(text = stringResource(id = R.string.home_continue_reading_action))
+            }
+        }
+    }
+}
+
+@Composable
+private fun continueReadingProgressLabel(document: ReaderDocument): String {
+    val index = document.lastLocation?.toIntOrNull()?.plus(1)
+    return when (document.format) {
+        ReaderDocumentFormat.PDF -> {
+            if (index != null && index > 0) {
+                stringResource(id = R.string.home_continue_page, index)
+            } else {
+                document.format.name
+            }
+        }
+        ReaderDocumentFormat.EPUB,
+        ReaderDocumentFormat.FB2 -> {
+            if (index != null && index > 0) {
+                stringResource(id = R.string.home_continue_chapter, index)
+            } else {
+                document.format.name
+            }
+        }
+        ReaderDocumentFormat.UNKNOWN -> document.format.name
     }
 }
 

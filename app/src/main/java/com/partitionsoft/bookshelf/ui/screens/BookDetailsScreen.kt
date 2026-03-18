@@ -56,10 +56,13 @@ fun BookDetailsRoute(
             .windowInsetsPadding(WindowInsets.systemBars),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Book details") },
+                title = { Text(text = stringResource(id = R.string.book_details)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -71,12 +74,14 @@ fun BookDetailsRoute(
                     .fillMaxSize()
                     .padding(paddingValues)
             )
+
             BookDetailsUiState.Error -> ErrorScreen(
                 retryAction = viewModel::loadBookDetails,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             )
+
             is BookDetailsUiState.Success -> BookDetailsContent(
                 book = state.book,
                 contentPadding = paddingValues,
@@ -148,7 +153,10 @@ private fun BookDetailsContent(
         MetadataRow(label = "Language", value = book.language)
 
         if (!book.description.isNullOrBlank()) {
-            Text(text = "About this book", style = MaterialTheme.typography.subtitle1)
+            Text(
+                text = stringResource(id = R.string.details_about_book),
+                style = MaterialTheme.typography.subtitle1
+            )
             Text(text = book.description, style = MaterialTheme.typography.body1)
         }
 

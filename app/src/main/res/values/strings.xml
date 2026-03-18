@@ -11,6 +11,10 @@
     <string name="published_in">Published %1$s</string>
     <string name="error_supporting_copy">Check your connection and try again.</string>
     <string name="home_featured_title">Featured picks</string>
+    <string name="home_continue_reading_title">Continue reading</string>
+    <string name="home_continue_reading_action">Resume</string>
+    <string name="home_continue_page">Page %1$d</string>
+    <string name="home_continue_chapter">Chapter %1$d</string>
     <string name="home_categories_title">Browse by category</string>
     <string name="home_category_shelf_title">Trending in %1$s</string>
     <string name="home_category_error">Unable to load this category right now.</string>
@@ -51,4 +55,9 @@
     <string name="fb2_chapter_fallback_title">Section %1$d</string>
     <string name="reader_enter_fullscreen">Enter full screen</string>
     <string name="reader_exit_fullscreen">Exit full screen</string>
+    <string name="format_pdf">PDF document</string>
+    <string name="format_epub">EPUB book</string>
+    <string name="format_fb2">FB2 book</string>
+    <string name="format_unknown">Document</string>
+    <string name="book_details">Book details</string>
 </resources>

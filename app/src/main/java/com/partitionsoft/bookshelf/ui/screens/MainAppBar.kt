@@ -11,13 +11,15 @@ fun MainAppBar(
     onCloseClicked: () -> Unit,
     onSearchClicked: (String) -> Unit,
     onSearchTriggered: () -> Unit,
-    onFavoritesClicked: () -> Unit
+    onFavoritesClicked: () -> Unit,
+    onLibraryClicked: () -> Unit
 ) {
     when (searchWidgetState) {
         BooksViewModel.SearchWidgetState.CLOSED -> {
             ClosedAppBar (
-                onSearchClicked = onSearchTriggered,
-                onFavoritesClicked = onFavoritesClicked
+                onSearchTriggered,
+                onFavoritesClicked,
+                onLibraryClicked
             )
         }
         BooksViewModel.SearchWidgetState.OPENED -> {

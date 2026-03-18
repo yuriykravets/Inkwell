@@ -35,6 +35,8 @@ import com.partitionsoft.bookshelf.ui.screens.BookDetailsRoute
 import com.partitionsoft.bookshelf.ui.screens.BrowseBooksRoute
 import com.partitionsoft.bookshelf.ui.screens.FavoritesRoute
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
+import com.partitionsoft.bookshelf.ui.screens.LibraryRoute
+import com.partitionsoft.bookshelf.ui.screens.LocalReaderRoute
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 import com.partitionsoft.bookshelf.ui.screens.ReaderRoute
 
@@ -66,6 +68,18 @@ fun BooksApp(
                 },
                 onFavoritesClicked = {
                     navController.navigate(BooksDestinations.FAVORITES_ROUTE)
+                },
+                onLibraryClicked = {
+                    navController.navigate(BooksDestinations.LIBRARY_ROUTE)
+                }
+            )
+        }
+
+        composable(route = BooksDestinations.LIBRARY_ROUTE) {
+            LibraryRoute(
+                onBackClicked = navController::navigateUp,
+                onOpenDocument = { documentId ->
+                    navController.navigate(BooksDestinations.localReaderRoute(documentId))
                 }
             )
         }
@@ -128,6 +142,13 @@ fun BooksApp(
         ) {
             ReaderRoute(onBackClicked = navController::navigateUp)
         }
+
+        composable(
+            route = BooksDestinations.LOCAL_READER_ROUTE,
+            arguments = listOf(navArgument(BooksDestinations.DOCUMENT_ID_ARG) { type = NavType.LongType })
+        ) {
+            LocalReaderRoute(onBackClicked = navController::navigateUp)
+        }
     }
 }
 
@@ -135,7 +156,8 @@ fun BooksApp(
 private fun HomeRoute(
     onBookClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
-    onFavoritesClicked: () -> Unit
+    onFavoritesClicked: () -> Unit,
+    onLibraryClicked: () -> Unit
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
 
@@ -177,6 +199,7 @@ private fun HomeRoute(
             booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.OPENED)
         },
         onFavoritesClicked = onFavoritesClicked,
+        onLibraryClicked = onLibraryClicked,
         booksUiState = searchUiState,
         homeUiState = homeUiState,
         categoryUiState = categoryUiState,
@@ -201,6 +224,7 @@ private fun BooksAppContent(
     onSearchClicked: (String) -> Unit,
     onSearchTriggered: () -> Unit,
     onFavoritesClicked: () -> Unit,
+    onLibraryClicked: () -> Unit,
     booksUiState: BooksUiState,
     homeUiState: HomeUiState,
     categoryUiState: CategoryShelfUiState,
@@ -226,7 +250,8 @@ private fun BooksAppContent(
                 onCloseClicked = onCloseClicked,
                 onSearchClicked = onSearchClicked,
                 onSearchTriggered = onSearchTriggered,
-                onFavoritesClicked = onFavoritesClicked
+                onFavoritesClicked = onFavoritesClicked,
+                onLibraryClicked = onLibraryClicked
             )
         }
     ) { paddingValues ->
@@ -265,6 +290,7 @@ private fun BooksAppContentPreview() {
         onSearchClicked = {},
         onSearchTriggered = {},
         onFavoritesClicked = {},
+        onLibraryClicked = {},
         booksUiState = BooksUiState.Success(bookSearch = emptyList()),
         homeUiState = HomeUiState(
             isLoading = false,

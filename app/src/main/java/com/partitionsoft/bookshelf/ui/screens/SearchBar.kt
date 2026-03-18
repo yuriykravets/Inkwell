@@ -15,6 +15,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
@@ -30,13 +31,20 @@ import com.example.bookshelf.R
 @Composable
 fun ClosedAppBar(
     onSearchClicked: () -> Unit,
-    onFavoritesClicked: () -> Unit
+    onFavoritesClicked: () -> Unit,
+    onLibraryClicked: () -> Unit
 ) {
     TopAppBar(
         backgroundColor = MaterialTheme.colors.surface,
         contentColor = MaterialTheme.colors.onSurface,
         title = { Text(text = stringResource(id = R.string.app_name)) },
         actions = {
+            IconButton(onClick = onLibraryClicked) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                    contentDescription = stringResource(id = R.string.library_title)
+                )
+            }
             IconButton(onClick = onFavoritesClicked) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,

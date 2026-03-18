@@ -32,4 +32,23 @@
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="rating_count">(%1$d)</string>
     <string name="rating_no_count">(new)</string>
+    <string name="library_title">My library</string>
+    <string name="import_book">Import book</string>
+    <string name="library_empty_title">Your library is empty</string>
+    <string name="library_empty_subtitle">Import EPUB, FB2, or PDF files to read them offline in the app.</string>
+    <string name="continue_reading_at">Continue at %1$s</string>
+    <string name="page_position">Page %1$d of %2$d</string>
+    <string name="chapter_position">Chapter %1$d of %2$d</string>
+    <string name="reader_pdf_zoom">Zoom %1$d%%</string>
+    <string name="reader_text_size">Text size %1$d%%</string>
+    <string name="previous_page">Previous</string>
+    <string name="next_page">Next</string>
+    <string name="epub_phase_one_message">EPUB viewer engine is in progress. You can already import EPUB files, and full in-app rendering will be enabled in the next phase.</string>
+    <string name="reader_unsupported_format">This file format is not supported yet.</string>
+    <string name="epub_book_fallback_title">Imported EPUB</string>
+    <string name="epub_chapter_fallback_title">Chapter %1$d</string>
+    <string name="fb2_book_fallback_title">Imported FB2</string>
+    <string name="fb2_chapter_fallback_title">Section %1$d</string>
+    <string name="reader_enter_fullscreen">Enter full screen</string>
+    <string name="reader_exit_fullscreen">Exit full screen</string>
 </resources>

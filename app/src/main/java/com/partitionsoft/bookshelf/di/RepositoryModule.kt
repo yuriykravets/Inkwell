@@ -1,7 +1,9 @@
 package com.partitionsoft.bookshelf.di
 
 import com.partitionsoft.bookshelf.data.repository.BookRepositoryImpl
+import com.partitionsoft.bookshelf.data.repository.ReaderRepositoryImpl
 import com.partitionsoft.bookshelf.domain.repository.BookRepository
+import com.partitionsoft.bookshelf.domain.repository.ReaderRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindBookRepository(
         repository: BookRepositoryImpl
     ): BookRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindReaderRepository(
+        repository: ReaderRepositoryImpl
+    ): ReaderRepository
 }

@@ -19,6 +19,17 @@ interface ReaderDocumentDao {
     )
     fun observeLibrary(): Flow<List<ReaderDocumentWithProgress>>
 
+    @Query(
+        """
+        SELECT d.id, d.title, d.uri, d.format, d.mimeType, d.addedAtMillis, p.location AS lastLocation
+        FROM reader_documents d
+        INNER JOIN reader_progress p ON p.documentId = d.id
+        ORDER BY p.updatedAtMillis DESC
+        LIMIT 1
+        """
+    )
+    fun observeContinueReading(): Flow<ReaderDocumentWithProgress?>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertDocument(document: ReaderDocumentEntity): Long
 

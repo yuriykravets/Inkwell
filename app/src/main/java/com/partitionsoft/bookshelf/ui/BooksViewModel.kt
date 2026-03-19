@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.domain.model.BookSection
+import com.partitionsoft.bookshelf.domain.model.ReaderDocument
 import com.partitionsoft.bookshelf.domain.repository.BookRepository
+import com.partitionsoft.bookshelf.domain.repository.ReaderRepository
 import com.partitionsoft.bookshelf.domain.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -29,6 +31,7 @@ data class HomeUiState(
     val featured: List<Book> = emptyList(),
     val sections: List<BookSection> = emptyList(),
     val categories: List<BookCategory> = emptyList(),
+    val continueReading: ReaderDocument? = null,
     val error: Throwable? = null
 )
 
@@ -41,7 +44,8 @@ data class CategoryShelfUiState(
 
 @HiltViewModel
 class BooksViewModel @Inject constructor(
-    private val booksRepository: BookRepository
+    private val booksRepository: BookRepository,
+    private val readerRepository: ReaderRepository
 ) : ViewModel() {
 
     private val _searchUiState = MutableStateFlow<BooksUiState>(BooksUiState.Loading)
@@ -63,6 +67,7 @@ class BooksViewModel @Inject constructor(
     private var categoryJob: Job? = null
 
     init {
+        observeContinueReading()
         observeHomeFeed()
         getBooks()
     }
@@ -117,11 +122,13 @@ class BooksViewModel @Inject constructor(
                 when (result) {
                     is Result.Loading -> _homeUiState.update { it.copy(isLoading = true, error = null) }
                     is Result.Success -> {
+                        val continueReading = _homeUiState.value.continueReading
                         _homeUiState.value = HomeUiState(
                             isLoading = false,
                             featured = result.data.featured,
                             sections = result.data.sections,
                             categories = result.data.categories,
+                            continueReading = continueReading,
                             error = null
                         )
                         val defaultCategory = result.data.categories.firstOrNull()
@@ -132,6 +139,17 @@ class BooksViewModel @Inject constructor(
                     is Result.Error -> _homeUiState.update {
                         it.copy(isLoading = false, error = result.exception)
                     }
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeContinueReading() {
+        readerRepository
+            .observeContinueReading()
+            .onEach { latest ->
+                _homeUiState.update { current ->
+                    current.copy(continueReading = latest)
                 }
             }
             .launchIn(viewModelScope)

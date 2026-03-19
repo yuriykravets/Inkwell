@@ -71,6 +71,9 @@ fun BooksApp(
                 },
                 onLibraryClicked = {
                     navController.navigate(BooksDestinations.LIBRARY_ROUTE)
+                },
+                onContinueReadingClicked = { documentId ->
+                    navController.navigate(BooksDestinations.localReaderRoute(documentId))
                 }
             )
         }
@@ -157,7 +160,8 @@ private fun HomeRoute(
     onBookClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
     onFavoritesClicked: () -> Unit,
-    onLibraryClicked: () -> Unit
+    onLibraryClicked: () -> Unit,
+    onContinueReadingClicked: (Long) -> Unit
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
 
@@ -209,7 +213,8 @@ private fun HomeRoute(
         searchRetryAction = { booksViewModel.getBooks(searchTextState) },
         onBookClicked = onBookClicked,
         onFavoriteClicked = booksViewModel::onFavoriteClicked,
-        onBrowseRequested = onBrowseRequested
+        onBrowseRequested = onBrowseRequested,
+        onContinueReadingClicked = onContinueReadingClicked
     )
 }
 
@@ -234,7 +239,8 @@ private fun BooksAppContent(
     searchRetryAction: () -> Unit,
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit,
-    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit
+    onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
+    onContinueReadingClicked: (Long) -> Unit
 ) {
     Scaffold(
         scaffoldState = scaffoldState,
@@ -272,7 +278,8 @@ private fun BooksAppContent(
                 onBookClicked = onBookClicked,
                 onFavoriteClicked = onFavoriteClicked,
                 onSearchRetry = searchRetryAction,
-                onBrowseRequested = onBrowseRequested
+                onBrowseRequested = onBrowseRequested,
+                onContinueReadingClicked = onContinueReadingClicked
             )
         }
     }
@@ -305,7 +312,8 @@ private fun BooksAppContentPreview() {
         searchRetryAction = {},
         onBookClicked = {},
         onFavoriteClicked = {},
-        onBrowseRequested = { _, _, _, _ -> }
+        onBrowseRequested = { _, _, _, _ -> },
+        onContinueReadingClicked = {}
     )
 }
 

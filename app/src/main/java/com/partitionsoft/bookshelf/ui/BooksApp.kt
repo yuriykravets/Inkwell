@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.MaterialTheme as Material2Theme
+import androidx.compose.material.Surface as Material2Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -266,20 +268,27 @@ private fun BooksAppContent(
                 .padding(paddingValues),
             color = MaterialTheme.colorScheme.background
         ) {
-            HomeScreen(
-                homeUiState = homeUiState,
-                categoryShelfUiState = categoryUiState,
-                booksUiState = booksUiState,
-                isSearchActive = isSearchActive,
-                retryAction = onHomeRetry,
-                onCategorySelected = onCategorySelected,
+            // Bridge M3 container with M2 content color so legacy M2 text is readable in dark mode.
+            Material2Surface(
                 modifier = Modifier.fillMaxSize(),
-                onBookClicked = onBookClicked,
-                onFavoriteClicked = onFavoriteClicked,
-                onSearchRetry = searchRetryAction,
-                onBrowseRequested = onBrowseRequested,
-                onContinueReadingClicked = onContinueReadingClicked
-            )
+                color = Material2Theme.colors.background,
+                contentColor = Material2Theme.colors.onBackground
+            ) {
+                HomeScreen(
+                    homeUiState = homeUiState,
+                    categoryShelfUiState = categoryUiState,
+                    booksUiState = booksUiState,
+                    isSearchActive = isSearchActive,
+                    retryAction = onHomeRetry,
+                    onCategorySelected = onCategorySelected,
+                    modifier = Modifier.fillMaxSize(),
+                    onBookClicked = onBookClicked,
+                    onFavoriteClicked = onFavoriteClicked,
+                    onSearchRetry = searchRetryAction,
+                    onBrowseRequested = onBrowseRequested,
+                    onContinueReadingClicked = onContinueReadingClicked
+                )
+            }
         }
     }
 }

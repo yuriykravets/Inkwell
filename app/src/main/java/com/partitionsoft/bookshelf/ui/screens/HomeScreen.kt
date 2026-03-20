@@ -67,6 +67,8 @@ fun HomeScreen(
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
     onContinueReadingClicked: (Long) -> Unit
 ) {
+    val hasHomeContent = homeUiState.hasRenderableContent()
+
     if (isSearchActive) {
         SearchResults(
             booksUiState = booksUiState,
@@ -80,7 +82,7 @@ fun HomeScreen(
 
     when {
         homeUiState.isLoading -> LoadingScreen(modifier = modifier.fillMaxSize())
-        homeUiState.error != null -> {
+        homeUiState.error != null && !hasHomeContent -> {
             if (homeUiState.error.isQuotaLimitIssue()) {
                 HomeQuotaErrorScreen(
                     retryAction = retryAction,
@@ -96,13 +98,15 @@ fun HomeScreen(
 
         else -> HomeFeedList(
             homeUiState = homeUiState,
+            homeError = homeUiState.error,
             categoryShelfUiState = categoryShelfUiState,
             onCategorySelected = onCategorySelected,
             modifier = modifier,
             onBookClicked = onBookClicked,
             onFavoriteClicked = onFavoriteClicked,
             onBrowseRequested = onBrowseRequested,
-            onContinueReadingClicked = onContinueReadingClicked
+            onContinueReadingClicked = onContinueReadingClicked,
+            onRetryHome = retryAction
         )
     }
 }
@@ -199,13 +203,15 @@ private fun SearchResults(
 @Composable
 private fun HomeFeedList(
     homeUiState: HomeUiState,
+    homeError: Throwable?,
     categoryShelfUiState: CategoryShelfUiState,
     onCategorySelected: (BookCategory) -> Unit,
     modifier: Modifier,
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
-    onContinueReadingClicked: (Long) -> Unit
+    onContinueReadingClicked: (Long) -> Unit,
+    onRetryHome: () -> Unit
 ) {
     val selectedCategory =
         remember(homeUiState.categories, categoryShelfUiState.selectedCategoryId) {
@@ -217,6 +223,15 @@ private fun HomeFeedList(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp)
     ) {
+        homeError?.let { error ->
+            item(key = "home_status_banner") {
+                HomeInlineStatusCard(
+                    isQuotaIssue = error.isQuotaLimitIssue(),
+                    onRetry = onRetryHome
+                )
+            }
+        }
+
         homeUiState.continueReading?.let { document ->
             item(key = "continue_reading") {
                 SectionHeader(title = stringResource(id = R.string.home_continue_reading_title))
@@ -271,6 +286,49 @@ private fun HomeFeedList(
         }
     }
 }
+
+@Composable
+private fun HomeInlineStatusCard(
+    isQuotaIssue: Boolean,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = 2.dp,
+        backgroundColor = MaterialTheme.colors.surface
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = if (isQuotaIssue) {
+                    stringResource(id = R.string.home_quota_status_label)
+                } else {
+                    stringResource(id = R.string.loading_failed)
+                },
+                style = MaterialTheme.typography.overline,
+                color = MaterialTheme.colors.primary,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = if (isQuotaIssue) {
+                    stringResource(id = R.string.home_quota_supporting)
+                } else {
+                    stringResource(id = R.string.error_supporting_copy)
+                },
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.82f)
+            )
+            TextButton(onClick = onRetry) {
+                Text(text = stringResource(id = R.string.retry))
+            }
+        }
+    }
+}
+
+private fun HomeUiState.hasRenderableContent(): Boolean =
+    featured.isNotEmpty() || sections.isNotEmpty() || categories.isNotEmpty() || continueReading != null
 
 @Composable
 private fun ContinueReadingCard(

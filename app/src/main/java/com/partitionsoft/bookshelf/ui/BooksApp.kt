@@ -5,17 +5,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.SnackbarDuration
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.SnackbarResult
-import androidx.compose.material.Surface
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -173,13 +173,13 @@ private fun HomeRoute(
     val isSearchActive =
         searchWidgetState == BooksViewModel.SearchWidgetState.OPENED || searchTextState.isNotBlank()
 
-    val scaffoldState = rememberScaffoldState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage = stringResource(id = R.string.loading_failed)
     val retryLabel = stringResource(id = R.string.retry)
 
     LaunchedEffect(searchUiState, errorMessage, retryLabel) {
         if (searchUiState is BooksUiState.Error) {
-            val result = scaffoldState.snackbarHostState.showSnackbar(
+            val result = snackbarHostState.showSnackbar(
                 message = errorMessage,
                 actionLabel = retryLabel,
                 duration = SnackbarDuration.Short
@@ -191,7 +191,7 @@ private fun HomeRoute(
     }
 
     BooksAppContent(
-        scaffoldState = scaffoldState,
+        snackbarHostState = snackbarHostState,
         searchWidgetState = searchWidgetState,
         searchTextState = searchTextState,
         onTextChange = booksViewModel::updateSearchTextState,
@@ -221,7 +221,7 @@ private fun HomeRoute(
 @Composable
 private fun BooksAppContent(
     modifier: Modifier = Modifier,
-    scaffoldState: ScaffoldState,
+    snackbarHostState: SnackbarHostState,
     searchWidgetState: BooksViewModel.SearchWidgetState,
     searchTextState: String,
     onTextChange: (String) -> Unit,
@@ -243,11 +243,10 @@ private fun BooksAppContent(
     onContinueReadingClicked: (Long) -> Unit
 ) {
     Scaffold(
-        scaffoldState = scaffoldState,
         modifier = modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars),
-        snackbarHost = { SnackbarHost(hostState = scaffoldState.snackbarHostState) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             MainAppBar(
                 searchWidgetState = searchWidgetState,
@@ -265,7 +264,7 @@ private fun BooksAppContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            color = MaterialTheme.colors.background
+            color = MaterialTheme.colorScheme.background
         ) {
             HomeScreen(
                 homeUiState = homeUiState,
@@ -289,7 +288,7 @@ private fun BooksAppContent(
 @Composable
 private fun BooksAppContentPreview() {
     BooksAppContent(
-        scaffoldState = rememberScaffoldState(),
+        snackbarHostState = SnackbarHostState(),
         searchWidgetState = BooksViewModel.SearchWidgetState.CLOSED,
         searchTextState = "",
         onTextChange = {},

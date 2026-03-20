@@ -4,10 +4,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.partitionsoft.bookshelf.data.local.FavoriteBookDao
+import com.partitionsoft.bookshelf.data.mapper.isOpenLibraryBookId
+import com.partitionsoft.bookshelf.data.mapper.toOpenLibraryWorkId
 import com.partitionsoft.bookshelf.data.mapper.toFavoriteEntity
 import com.partitionsoft.bookshelf.data.mapper.toDomain
 import com.partitionsoft.bookshelf.data.paging.BooksPagingSource
 import com.partitionsoft.bookshelf.data.remote.api.BookService
+import com.partitionsoft.bookshelf.data.remote.api.OpenLibraryService
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.domain.model.BookSection
@@ -18,7 +21,7 @@ import com.partitionsoft.bookshelf.domain.result.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -32,6 +35,7 @@ import javax.inject.Singleton
 @Singleton
 class BookRepositoryImpl @Inject constructor(
     private val bookService: BookService,
+    private val openLibraryService: OpenLibraryService,
     private val favoriteBookDao: FavoriteBookDao
 ) : BookRepository {
 
@@ -50,6 +54,7 @@ class BookRepositoryImpl @Inject constructor(
         pagingSourceFactory = {
             BooksPagingSource(
                 bookService = bookService,
+                openLibraryService = openLibraryService,
                 query = query,
                 orderBy = orderBy,
                 filter = filter,
@@ -113,7 +118,12 @@ class BookRepositoryImpl @Inject constructor(
     override fun getBookDetails(bookId: String): Flow<Result<Book>> = flow {
         emit(Result.Loading)
         try {
-            val remoteBook = bookService.getBookById(bookId).toDomain()
+            val remoteBook = if (bookId.isOpenLibraryBookId()) {
+                val workId = bookId.toOpenLibraryWorkId()
+                openLibraryService.getWorkById(workId).toDomain(workId)
+            } else {
+                bookService.getBookById(bookId).toDomain()
+            }
             emitAll(
                 observeFavoriteIds().map { favoriteIds ->
                     Result.Success(remoteBook.copy(isFavorite = favoriteIds.contains(remoteBook.id)))
@@ -170,9 +180,9 @@ class BookRepositoryImpl @Inject constructor(
 
     override suspend fun isFavorite(bookId: String): Boolean = favoriteBookDao.isFavorite(bookId)
 
-    private suspend fun buildHomeFeed(): HomeFeed = coroutineScope {
+    private suspend fun buildHomeFeed(): HomeFeed = supervisorScope {
         val featuredDeferred = async {
-            fetchBooks(
+            safeFetchBooksForHome(
                 query = FEATURED_SECTION.query,
                 maxResults = FEATURED_SECTION.maxResults,
                 orderBy = FEATURED_SECTION.orderBy,
@@ -182,7 +192,7 @@ class BookRepositoryImpl @Inject constructor(
 
         val sections = SECTION_CONFIGS.map { config ->
             async {
-                val books = fetchBooks(
+                val books = safeFetchBooksForHome(
                     query = config.query,
                     maxResults = config.maxResults,
                     orderBy = config.orderBy,
@@ -204,19 +214,69 @@ class BookRepositoryImpl @Inject constructor(
         )
     }
 
+    private suspend fun safeFetchBooksForHome(
+        query: String,
+        maxResults: Int,
+        orderBy: String? = null,
+        filter: String? = null
+    ): List<Book> = runCatching {
+        fetchBooks(
+            query = query,
+            maxResults = maxResults,
+            orderBy = orderBy,
+            filter = filter
+        )
+    }.getOrDefault(emptyList())
+
     private suspend fun fetchBooks(
         query: String,
         maxResults: Int,
         startIndex: Int = 0,
         orderBy: String? = null,
         filter: String? = null
-    ): List<Book> = bookService.searchBooks(
-        query = query,
-        startIndex = startIndex,
-        maxResults = maxResults,
-        orderBy = orderBy,
-        filter = filter
-    ).items?.map { it.toDomain() } ?: emptyList()
+    ): List<Book> {
+        val googleResult = runCatching {
+            bookService.searchBooks(
+                query = query,
+                startIndex = startIndex,
+                maxResults = maxResults,
+                orderBy = orderBy,
+                filter = filter
+            )
+        }
+
+        val googleBooks = googleResult.getOrNull()
+            ?.items
+            .orEmpty()
+            .map { it.toDomain() }
+
+        if (googleBooks.isNotEmpty()) return googleBooks
+
+        return fetchOpenLibraryBooks(
+            query = query,
+            maxResults = maxResults,
+            startIndex = startIndex
+        )
+    }
+
+    private suspend fun fetchOpenLibraryBooks(
+        query: String,
+        maxResults: Int,
+        startIndex: Int
+    ): List<Book> {
+        val limit = maxResults.coerceIn(1, 20)
+        val page = (startIndex / limit) + 1
+        val normalizedQuery = normalizeOpenLibraryQuery(query).ifBlank { DEFAULT_OPEN_LIBRARY_QUERY }
+
+        return openLibraryService.searchBooks(
+            query = normalizedQuery,
+            page = page,
+            limit = limit
+        ).docs.orEmpty().map { it.toDomain() }
+    }
+
+    private fun normalizeOpenLibraryQuery(query: String): String =
+        query.removePrefix(SUBJECT_QUERY_PREFIX)
 
     private fun normalizeCategoryQuery(categoryQuery: String): String =
         categoryQuery.takeIf { it.startsWith(SUBJECT_QUERY_PREFIX) }
@@ -254,6 +314,7 @@ class BookRepositoryImpl @Inject constructor(
 
     private companion object {
         private const val SUBJECT_QUERY_PREFIX = "subject:"
+        private const val DEFAULT_OPEN_LIBRARY_QUERY = "book"
 
         private val FEATURED_SECTION = SectionConfig(
             id = "featured",

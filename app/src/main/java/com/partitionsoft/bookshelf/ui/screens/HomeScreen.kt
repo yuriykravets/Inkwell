@@ -50,6 +50,7 @@ import com.partitionsoft.bookshelf.ui.BooksUiState
 import com.partitionsoft.bookshelf.ui.CategoryShelfUiState
 import com.partitionsoft.bookshelf.ui.HomeUiState
 import kotlinx.coroutines.delay
+import retrofit2.HttpException
 
 @Composable
 fun HomeScreen(
@@ -79,10 +80,19 @@ fun HomeScreen(
 
     when {
         homeUiState.isLoading -> LoadingScreen(modifier = modifier.fillMaxSize())
-        homeUiState.error != null -> ErrorScreen(
-            retryAction = retryAction,
-            modifier = modifier.fillMaxSize()
-        )
+        homeUiState.error != null -> {
+            if (homeUiState.error.isQuotaLimitIssue()) {
+                HomeQuotaErrorScreen(
+                    retryAction = retryAction,
+                    modifier = modifier.fillMaxSize()
+                )
+            } else {
+                ErrorScreen(
+                    retryAction = retryAction,
+                    modifier = modifier.fillMaxSize()
+                )
+            }
+        }
 
         else -> HomeFeedList(
             homeUiState = homeUiState,
@@ -94,6 +104,65 @@ fun HomeScreen(
             onBrowseRequested = onBrowseRequested,
             onContinueReadingClicked = onContinueReadingClicked
         )
+    }
+}
+
+@Composable
+private fun HomeQuotaErrorScreen(
+    retryAction: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 4.dp,
+            backgroundColor = MaterialTheme.colors.primary.copy(alpha = 0.08f)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.home_quota_status_label),
+                    style = MaterialTheme.typography.overline,
+                    color = MaterialTheme.colors.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(id = R.string.home_quota_title),
+                    style = MaterialTheme.typography.h6
+                )
+                Text(
+                    text = stringResource(id = R.string.home_quota_supporting),
+                    style = MaterialTheme.typography.body2,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.78f)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(onClick = retryAction) {
+            Text(text = stringResource(id = R.string.retry))
+        }
+    }
+}
+
+private fun Throwable.isQuotaLimitIssue(): Boolean {
+    return generateSequence(this) { it.cause }.any { throwable ->
+        when (throwable) {
+            is HttpException -> throwable.code() == 429
+            else -> {
+                val message = throwable.message.orEmpty().lowercase()
+                message.contains("quota") ||
+                    message.contains("resource_exhausted") ||
+                    message.contains("rate limit")
+            }
+        }
     }
 }
 

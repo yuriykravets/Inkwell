@@ -10,6 +10,9 @@
     <string name="book_cover_content_description">Cover image for %1$s</string>
     <string name="published_in">Published %1$s</string>
     <string name="error_supporting_copy">Check your connection and try again.</string>
+    <string name="home_quota_status_label">Service update</string>
+    <string name="home_quota_title">Book providers are temporarily busy</string>
+    <string name="home_quota_supporting">Some requests are currently limited by our book APIs. We are automatically retrying and improving stability. Please try again in a minute.</string>
     <string name="home_featured_title">Featured picks</string>
     <string name="home_continue_reading_title">Continue reading</string>
     <string name="home_continue_reading_action">Resume</string>

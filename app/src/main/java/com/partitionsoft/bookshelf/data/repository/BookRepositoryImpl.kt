@@ -71,6 +71,7 @@ class BookRepositoryImpl @Inject constructor(
             ?: (SUBJECT_QUERY_PREFIX + category.query)
         return observePagedBooks(
             query = normalizedQuery,
+            orderBy = ORDER_BY_POPULAR,
             pageSize = pageSize
         )
     }
@@ -100,7 +101,11 @@ class BookRepositoryImpl @Inject constructor(
         emit(Result.Loading)
         when (
             val result = safeApiCall {
-                fetchBooks(query = normalizeCategoryQuery(categoryQuery), maxResults = maxResults)
+                fetchBooks(
+                    query = normalizeCategoryQuery(categoryQuery),
+                    maxResults = maxResults,
+                    prioritizePopular = true
+                )
             }
         ) {
             is Result.Success -> {
@@ -224,7 +229,8 @@ class BookRepositoryImpl @Inject constructor(
             query = query,
             maxResults = maxResults,
             orderBy = orderBy,
-            filter = filter
+            filter = filter,
+            prioritizePopular = true
         )
     }.getOrDefault(emptyList())
 
@@ -233,14 +239,19 @@ class BookRepositoryImpl @Inject constructor(
         maxResults: Int,
         startIndex: Int = 0,
         orderBy: String? = null,
-        filter: String? = null
+        filter: String? = null,
+        prioritizePopular: Boolean = false
     ): List<Book> {
+        val googleOrderBy = when (orderBy) {
+            ORDER_BY_POPULAR -> null
+            else -> orderBy
+        }
         val googleResult = runCatching {
             bookService.searchBooks(
                 query = query,
                 startIndex = startIndex,
                 maxResults = maxResults,
-                orderBy = orderBy,
+                orderBy = googleOrderBy,
                 filter = filter
             )
         }
@@ -249,30 +260,37 @@ class BookRepositoryImpl @Inject constructor(
             ?.items
             .orEmpty()
             .map { it.toDomain() }
+            .let { books ->
+                if (prioritizePopular || orderBy == ORDER_BY_POPULAR) books.sortedByPopularity() else books
+            }
 
         if (googleBooks.isNotEmpty()) return googleBooks
 
         return fetchOpenLibraryBooks(
             query = query,
             maxResults = maxResults,
-            startIndex = startIndex
+            startIndex = startIndex,
+            prioritizePopular = prioritizePopular || orderBy == ORDER_BY_POPULAR
         )
     }
 
     private suspend fun fetchOpenLibraryBooks(
         query: String,
         maxResults: Int,
-        startIndex: Int
+        startIndex: Int,
+        prioritizePopular: Boolean
     ): List<Book> {
         val limit = maxResults.coerceIn(1, 20)
         val page = (startIndex / limit) + 1
         val normalizedQuery = normalizeOpenLibraryQuery(query).ifBlank { DEFAULT_OPEN_LIBRARY_QUERY }
 
-        return openLibraryService.searchBooks(
+        val books = openLibraryService.searchBooks(
             query = normalizedQuery,
             page = page,
             limit = limit
         ).docs.orEmpty().map { it.toDomain() }
+
+        return if (prioritizePopular) books.sortedByPopularity() else books
     }
 
     private fun normalizeOpenLibraryQuery(query: String): String =
@@ -322,7 +340,6 @@ class BookRepositoryImpl @Inject constructor(
             query = "bestseller",
             maxResults = 10,
             layout = SectionLayout.Carousel,
-            orderBy = "newest",
             filter = "ebooks"
         )
 
@@ -353,8 +370,7 @@ class BookRepositoryImpl @Inject constructor(
                 title = "Science Breakthroughs",
                 query = "subject:science",
                 maxResults = 10,
-                layout = SectionLayout.Horizontal,
-                orderBy = "newest"
+                layout = SectionLayout.Horizontal
             )
         )
 

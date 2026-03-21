@@ -2,6 +2,8 @@ package com.partitionsoft.bookshelf.data.repository
 
 import com.partitionsoft.bookshelf.data.local.FavoriteBookDao
 import com.partitionsoft.bookshelf.data.remote.api.BookService
+import com.partitionsoft.bookshelf.data.remote.api.OpenLibraryService
+import com.partitionsoft.bookshelf.data.remote.dto.OpenLibrarySearchDto
 import com.partitionsoft.bookshelf.data.remote.dto.BookShelfDto
 import com.partitionsoft.bookshelf.data.remote.dto.ImageLinksDto
 import com.partitionsoft.bookshelf.data.remote.dto.ItemDto
@@ -25,12 +27,14 @@ import java.io.IOException
 class BookRepositoryImplTest {
 
     private val service: BookService = mockk()
+    private val openLibraryService: OpenLibraryService = mockk()
     private val favoriteBookDao: FavoriteBookDao = mockk()
-    private val repository = BookRepositoryImpl(service, favoriteBookDao)
+    private val repository = BookRepositoryImpl(service, openLibraryService, favoriteBookDao)
 
     @Test
     fun `searchBooks emits loading then success`() = runTest {
         every { favoriteBookDao.observeFavoriteIds() } returns flowOf(emptyList())
+        coEvery { openLibraryService.searchBooks(any(), any(), any()) } returns OpenLibrarySearchDto()
         coEvery {
             service.searchBooks(
                 query = any(),
@@ -53,6 +57,7 @@ class BookRepositoryImplTest {
     @Test
     fun `searchBooks emits error when api fails`() = runTest {
         every { favoriteBookDao.observeFavoriteIds() } returns flowOf(emptyList())
+        coEvery { openLibraryService.searchBooks(any(), any(), any()) } returns OpenLibrarySearchDto()
         coEvery {
             service.searchBooks(
                 query = any(),
@@ -73,6 +78,7 @@ class BookRepositoryImplTest {
     @Test
     fun `getBookDetails emits loading then mapped book`() = runTest {
         every { favoriteBookDao.observeFavoriteIds() } returns flowOf(emptyList())
+        coEvery { openLibraryService.getWorkById(any()) } throws IOException("unused")
         coEvery { service.getBookById("book-1") } returns ItemDto(
             id = "book-1",
             volumeInfo = VolumeInfoDto(

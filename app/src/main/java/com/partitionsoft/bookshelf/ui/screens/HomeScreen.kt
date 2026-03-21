@@ -581,7 +581,7 @@ private fun CategoryShelfSection(
             title = stringResource(id = R.string.home_category_shelf_title, title),
             actionLabel = stringResource(id = R.string.see_all),
             onActionClick = selectedCategory?.let {
-                { onBrowseRequested(it.title, it.query, null, null) }
+                { onBrowseRequested(it.title, it.query, POPULAR_ORDER, null) }
             }
         )
         AnimatedContent(
@@ -712,14 +712,15 @@ private fun sectionQuery(section: BookSection): String = when (section.id) {
 }
 
 private fun sectionOrderBy(section: BookSection): String? = when (section.id) {
-    "science_breakthroughs" -> "newest"
-    else -> null
+    else -> POPULAR_ORDER
 }
 
 private fun sectionFilter(section: BookSection): String? = when (section.id) {
     "featured" -> "ebooks"
     else -> null
 }
+
+private const val POPULAR_ORDER = "popular"
 
 @Composable
 private fun HorizontalBookCard(

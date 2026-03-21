@@ -3,6 +3,8 @@ package com.partitionsoft.bookshelf.data.paging
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.partitionsoft.bookshelf.data.mapper.toDomain
+import com.partitionsoft.bookshelf.data.repository.ORDER_BY_POPULAR
+import com.partitionsoft.bookshelf.data.repository.sortedByPopularity
 import com.partitionsoft.bookshelf.data.remote.api.BookService
 import com.partitionsoft.bookshelf.data.remote.api.OpenLibraryService
 import com.partitionsoft.bookshelf.domain.model.Book
@@ -22,19 +24,22 @@ class BooksPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Book> {
         val startIndex = params.key ?: 0
         val requestedSize = params.loadSize.coerceAtMost(MAX_RESULTS_PER_REQUEST)
+        val googleOrderBy = if (orderBy == ORDER_BY_POPULAR) null else orderBy
 
         return try {
             val response = bookService.searchBooks(
                 query = query,
                 startIndex = startIndex,
                 maxResults = requestedSize,
-                orderBy = orderBy,
+                orderBy = googleOrderBy,
                 filter = filter
             )
             val favoriteIds = favoriteIdsProvider()
             val googleBooks = response.items.orEmpty().map { item ->
                 val book = item.toDomain()
                 book.copy(isFavorite = favoriteIds.contains(book.id))
+            }.let { books ->
+                if (orderBy == ORDER_BY_POPULAR) books.sortedByPopularity() else books
             }
             if (googleBooks.isNotEmpty()) {
                 val totalItems = response.totalItems ?: 0
@@ -75,6 +80,8 @@ class BooksPagingSource(
             val books = response.docs.orEmpty().map { doc ->
                 val book = doc.toDomain()
                 book.copy(isFavorite = favoriteIds.contains(book.id))
+            }.let { mappedBooks ->
+                if (orderBy == ORDER_BY_POPULAR) mappedBooks.sortedByPopularity() else mappedBooks
             }
             val totalItems = response.numFound ?: 0
             val nextIndex = startIndex + books.size

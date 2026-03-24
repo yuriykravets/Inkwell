@@ -1,5 +1,6 @@
 package com.partitionsoft.bookshelf.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -175,6 +176,10 @@ private fun HomeRoute(
     val isSearchActive =
         searchWidgetState == BooksViewModel.SearchWidgetState.OPENED || searchTextState.isNotBlank()
 
+    BackHandler(enabled = isSearchActive) {
+        booksViewModel.closeSearch()
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage = stringResource(id = R.string.loading_failed)
     val retryLabel = stringResource(id = R.string.retry)
@@ -197,9 +202,7 @@ private fun HomeRoute(
         searchWidgetState = searchWidgetState,
         searchTextState = searchTextState,
         onTextChange = booksViewModel::updateSearchTextState,
-        onCloseClicked = {
-            booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.CLOSED)
-        },
+        onCloseClicked = booksViewModel::closeSearch,
         onSearchClicked = booksViewModel::getBooks,
         onSearchTriggered = {
             booksViewModel.updateSearchWidgetState(newValue = BooksViewModel.SearchWidgetState.OPENED)

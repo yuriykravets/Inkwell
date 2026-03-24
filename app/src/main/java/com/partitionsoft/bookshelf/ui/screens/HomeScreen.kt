@@ -7,7 +7,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,6 +51,8 @@ import com.partitionsoft.bookshelf.domain.model.SectionLayout
 import com.partitionsoft.bookshelf.ui.BooksUiState
 import com.partitionsoft.bookshelf.ui.CategoryShelfUiState
 import com.partitionsoft.bookshelf.ui.HomeUiState
+import com.partitionsoft.bookshelf.ui.components.InkwellSectionTitle
+import com.partitionsoft.bookshelf.ui.theme.LocalSpacing
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
 
@@ -163,8 +167,8 @@ private fun Throwable.isQuotaLimitIssue(): Boolean {
             else -> {
                 val message = throwable.message.orEmpty().lowercase()
                 message.contains("quota") ||
-                    message.contains("resource_exhausted") ||
-                    message.contains("rate limit")
+                        message.contains("resource_exhausted") ||
+                        message.contains("rate limit")
             }
         }
     }
@@ -376,6 +380,7 @@ private fun continueReadingProgressLabel(document: ReaderDocument): String {
                 document.format.name
             }
         }
+
         ReaderDocumentFormat.EPUB,
         ReaderDocumentFormat.FB2 -> {
             if (index != null && index > 0) {
@@ -384,6 +389,7 @@ private fun continueReadingProgressLabel(document: ReaderDocument): String {
                 document.format.name
             }
         }
+
         ReaderDocumentFormat.UNKNOWN -> document.format.name
     }
 }
@@ -394,24 +400,13 @@ private fun SectionHeader(
     actionLabel: String? = null,
     onActionClick: (() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.h6,
-            modifier = Modifier.weight(1f)
-        )
-        if (onActionClick != null && actionLabel != null) {
-            TextButton(onClick = onActionClick) {
-                Text(text = actionLabel)
-            }
-        }
-    }
+    val spacing = LocalSpacing.current
+    InkwellSectionTitle(
+        title = title,
+        actionLabel = actionLabel,
+        onActionClick = onActionClick,
+        modifier = Modifier.padding(bottom = spacing.sm)
+    )
 }
 
 @Composable
@@ -440,12 +435,22 @@ private fun FeaturedBookCard(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit
 ) {
+    val isLightTheme = MaterialTheme.colors.isLight
     Card(
         modifier = Modifier
             .width(260.dp)
             .clickable { onBookClicked(book) },
         elevation = 10.dp,
-        backgroundColor = MaterialTheme.colors.surface
+        backgroundColor = MaterialTheme.colors.surface,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (isLightTheme) {
+                MaterialTheme.colors.onSurface.copy(alpha = 0.10f)
+            } else {
+                MaterialTheme.colors.onSurface.copy(alpha = 0.16f)
+            }
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -481,6 +486,7 @@ private fun FeaturedBookCard(
                 ratingsCount = book.ratingsCount,
                 compact = true
             )
+            Spacer(modifier = Modifier.height(12.dp))
             if (book.authors.isNotEmpty()) {
                 Text(
                     text = book.authors.joinToString(),
@@ -521,13 +527,22 @@ private fun CategoryChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val targetBackground = if (selected) {
-        MaterialTheme.colors.primary.copy(alpha = 0.18f)
-    } else {
-        MaterialTheme.colors.onSurface.copy(alpha = 0.08f)
+    val isLightTheme = MaterialTheme.colors.isLight
+    val targetBackground = when {
+        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.16f else 0.22f)
+        isLightTheme -> MaterialTheme.colors.surface
+        else -> MaterialTheme.colors.onSurface.copy(alpha = 0.08f)
     }
-    val targetContent =
-        if (selected) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+    val targetContent = if (selected) {
+        MaterialTheme.colors.primary
+    } else {
+        MaterialTheme.colors.onSurface.copy(alpha = 0.86f)
+    }
+    val targetBorder = when {
+        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.38f else 0.52f)
+        isLightTheme -> MaterialTheme.colors.onSurface.copy(alpha = 0.14f)
+        else -> MaterialTheme.colors.onSurface.copy(alpha = 0.20f)
+    }
     val background by animateColorAsState(
         targetValue = targetBackground,
         animationSpec = tween(250),
@@ -538,16 +553,25 @@ private fun CategoryChip(
         animationSpec = tween(250),
         label = "chip_text"
     )
+    val borderColor by animateColorAsState(
+        targetValue = targetBorder,
+        animationSpec = tween(250),
+        label = "chip_border"
+    )
 
     Card(
         modifier = Modifier.clickable { onClick() },
-        backgroundColor = background
+        backgroundColor = background,
+        shape = RoundedCornerShape(22.dp),
+        elevation = if (selected) 2.dp else 0.dp,
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
             color = contentColor,
-            style = MaterialTheme.typography.body2
+            style = MaterialTheme.typography.body2,
+            maxLines = 1
         )
     }
 }
@@ -728,10 +752,22 @@ private fun HorizontalBookCard(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit
 ) {
+    val isLightTheme = MaterialTheme.colors.isLight
     Card(
         modifier = Modifier
             .width(150.dp)
-            .clickable { onBookClicked(book) }
+            .clickable { onBookClicked(book) },
+        elevation = 8.dp,
+        backgroundColor = MaterialTheme.colors.surface,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (isLightTheme) {
+                MaterialTheme.colors.onSurface.copy(alpha = 0.10f)
+            } else {
+                MaterialTheme.colors.onSurface.copy(alpha = 0.16f)
+            }
+        )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(

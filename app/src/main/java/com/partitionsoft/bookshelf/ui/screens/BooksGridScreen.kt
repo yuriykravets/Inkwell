@@ -13,9 +13,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
+import com.partitionsoft.bookshelf.ui.theme.LocalSpacing
 
 @Composable
 fun BooksGridScreen(
@@ -38,13 +40,14 @@ fun BooksGridScreen(
     onFavoriteClicked: (Book) -> Unit = {}
 ) {
     val gridState = rememberLazyGridState()
+    val spacing = LocalSpacing.current
     LazyVerticalGrid(
         columns = GridCells.Adaptive(160.dp),
         state = gridState,
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm)
     ) {
         itemsIndexed(
             items = books,
@@ -68,21 +71,23 @@ fun BooksCard(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit = {}
 ) {
-    Card(
+    val spacing = LocalSpacing.current
+    ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onBookClicked(book) },
-        elevation = 8.dp
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(spacing.xs)
         ) {
             Text(
                 text = book.title,
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.titleMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -104,8 +109,8 @@ fun BooksCard(
             if (book.authors.isNotEmpty()) {
                 Text(
                     text = book.authors.joinToString(),
-                    style = MaterialTheme.typography.caption,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -114,8 +119,8 @@ fun BooksCard(
             if (!book.publishedDate.isNullOrBlank()) {
                 Text(
                     text = stringResource(id = R.string.published_in, book.publishedDate),
-                    style = MaterialTheme.typography.caption,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

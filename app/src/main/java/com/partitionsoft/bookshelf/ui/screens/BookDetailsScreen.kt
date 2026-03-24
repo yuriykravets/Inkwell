@@ -15,18 +15,11 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,6 +33,10 @@ import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.BookDetailsUiState
 import com.partitionsoft.bookshelf.ui.BookDetailsViewModel
+import com.partitionsoft.bookshelf.ui.components.InkwellPrimaryButton
+import com.partitionsoft.bookshelf.ui.components.InkwellSecondaryButton
+import com.partitionsoft.bookshelf.ui.components.InkwellTopBar
+import com.partitionsoft.bookshelf.ui.theme.LocalSpacing
 
 @Composable
 fun BookDetailsRoute(
@@ -55,16 +52,10 @@ fun BookDetailsRoute(
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars),
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.book_details)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClicked) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+            InkwellTopBar(
+                title = stringResource(id = R.string.book_details),
+                onBackClick = onBackClicked,
+                backContentDescription = stringResource(id = R.string.back)
             )
         }
     ) { paddingValues ->
@@ -101,25 +92,26 @@ private fun BookDetailsContent(
     onPreviewClicked: (String) -> Unit,
     onFavoriteClicked: (Book) -> Unit
 ) {
+    val spacing = LocalSpacing.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(contentPadding)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = spacing.md, vertical = spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm)
     ) {
         Text(
             text = book.title,
-            style = MaterialTheme.typography.h5,
+            style = MaterialTheme.typography.headlineSmall,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis
         )
         if (book.authors.isNotEmpty()) {
             Text(
                 text = book.authors.joinToString(),
-                style = MaterialTheme.typography.subtitle1,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.75f)
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         BookRating(
@@ -128,7 +120,10 @@ private fun BookDetailsContent(
             compact = false
         )
 
-        Card(elevation = 8.dp) {
+        Card(
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
             Box {
                 BookCover(
                     thumbnail = book.thumbnail,
@@ -148,34 +143,34 @@ private fun BookDetailsContent(
             }
         }
 
-        MetadataRow(label = "Published", value = book.publishedDate)
-        MetadataRow(label = "Pages", value = book.pageCount?.toString())
-        MetadataRow(label = "Language", value = book.language)
+        MetadataRow(label = stringResource(id = R.string.details_published), value = book.publishedDate)
+        MetadataRow(label = stringResource(id = R.string.details_pages), value = book.pageCount?.toString())
+        MetadataRow(label = stringResource(id = R.string.details_language), value = book.language)
+
+        Spacer(modifier = Modifier.height(spacing.xs))
 
         if (!book.description.isNullOrBlank()) {
             Text(
                 text = stringResource(id = R.string.details_about_book),
-                style = MaterialTheme.typography.subtitle1
+                style = MaterialTheme.typography.titleMedium
             )
-            Text(text = book.description, style = MaterialTheme.typography.body1)
+            Text(text = book.description, style = MaterialTheme.typography.bodyLarge)
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
+        Spacer(modifier = Modifier.height(spacing.xs))
+        InkwellPrimaryButton(
+            text = stringResource(id = R.string.read_preview),
             onClick = { onReadClicked(book.id) },
             enabled = book.embeddable,
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Read preview")
-        }
+        )
 
         if (!book.previewLink.isNullOrBlank()) {
-            OutlinedButton(
+            InkwellSecondaryButton(
+                text = stringResource(id = R.string.open_in_browser),
                 onClick = { onPreviewClicked(book.previewLink) },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Open in browser")
-            }
+            )
         }
     }
 }
@@ -203,7 +198,7 @@ private fun MetadataRow(label: String, value: String?) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, style = MaterialTheme.typography.body2)
-        Text(text = value, style = MaterialTheme.typography.body2)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        Text(text = value, style = MaterialTheme.typography.bodyMedium)
     }
 }

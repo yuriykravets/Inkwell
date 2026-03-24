@@ -65,6 +65,7 @@ class BooksViewModel @Inject constructor(
 
     private var homeJob: Job? = null
     private var categoryJob: Job? = null
+    private var searchJob: Job? = null
 
     init {
         observeContinueReading()
@@ -73,7 +74,8 @@ class BooksViewModel @Inject constructor(
     }
 
     fun getBooks(query: String = "book", maxResults: Int = 40) {
-        booksRepository
+        searchJob?.cancel()
+        searchJob = booksRepository
             .searchBooks(query, maxResults)
             .onEach { result ->
                 _searchUiState.value = when (result) {
@@ -83,6 +85,13 @@ class BooksViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    fun closeSearch(clearQuery: Boolean = true) {
+        _searchWidgetState.value = SearchWidgetState.CLOSED
+        if (clearQuery) {
+            _searchTextState.value = ""
+        }
     }
 
     fun refreshHome() {

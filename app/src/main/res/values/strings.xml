@@ -19,6 +19,8 @@
     <string name="home_continue_page">Page %1$d</string>
     <string name="home_continue_chapter">Chapter %1$d</string>
     <string name="home_categories_title">Browse by category</string>
+    <string name="home_intro_title">Books of all time. Read free and enjoy.</string>
+    <string name="home_intro_supporting">Discover featured titles, popular categories, and continue where you left off in one place.</string>
     <string name="home_category_shelf_title">Trending in %1$s</string>
     <string name="home_category_error">Unable to load this category right now.</string>
     <string name="details_about_book">About this book</string>

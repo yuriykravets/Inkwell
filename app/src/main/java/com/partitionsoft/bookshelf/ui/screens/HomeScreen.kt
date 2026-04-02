@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -227,6 +228,10 @@ private fun HomeFeedList(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp)
     ) {
+        item(key = "home_intro") {
+            HomeIntroCard()
+        }
+
         homeError?.let { error ->
             item(key = "home_status_banner") {
                 HomeInlineStatusCard(
@@ -286,6 +291,41 @@ private fun HomeFeedList(
                 onBookClicked = onBookClicked,
                 onFavoriteClicked = onFavoriteClicked,
                 onBrowseRequested = onBrowseRequested
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeIntroCard() {
+    val isLightTheme = MaterialTheme.colors.isLight
+    val cardBackground = if (isLightTheme) Color(0xFFF7F3FF) else MaterialTheme.colors.surface
+    val borderColor = if (isLightTheme) {
+        MaterialTheme.colors.primary.copy(alpha = 0.24f)
+    } else {
+        MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = 4.dp,
+        backgroundColor = cardBackground,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.home_intro_title),
+                style = MaterialTheme.typography.subtitle1,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(id = R.string.home_intro_supporting),
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f)
             )
         }
     }
@@ -436,17 +476,18 @@ private fun FeaturedBookCard(
     onFavoriteClicked: (Book) -> Unit
 ) {
     val isLightTheme = MaterialTheme.colors.isLight
+    val cardBackground = if (isLightTheme) Color(0xFFFCFBFF) else MaterialTheme.colors.surface
     Card(
         modifier = Modifier
             .width(260.dp)
             .clickable { onBookClicked(book) },
         elevation = 10.dp,
-        backgroundColor = MaterialTheme.colors.surface,
+        backgroundColor = cardBackground,
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(
             width = 1.dp,
             color = if (isLightTheme) {
-                MaterialTheme.colors.onSurface.copy(alpha = 0.10f)
+                MaterialTheme.colors.onSurface.copy(alpha = 0.14f)
             } else {
                 MaterialTheme.colors.onSurface.copy(alpha = 0.16f)
             }
@@ -529,8 +570,8 @@ private fun CategoryChip(
 ) {
     val isLightTheme = MaterialTheme.colors.isLight
     val targetBackground = when {
-        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.16f else 0.22f)
-        isLightTheme -> MaterialTheme.colors.surface
+        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.2f else 0.22f)
+        isLightTheme -> MaterialTheme.colors.onSurface.copy(alpha = 0.045f)
         else -> MaterialTheme.colors.onSurface.copy(alpha = 0.08f)
     }
     val targetContent = if (selected) {
@@ -539,8 +580,8 @@ private fun CategoryChip(
         MaterialTheme.colors.onSurface.copy(alpha = 0.86f)
     }
     val targetBorder = when {
-        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.38f else 0.52f)
-        isLightTheme -> MaterialTheme.colors.onSurface.copy(alpha = 0.14f)
+        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.48f else 0.52f)
+        isLightTheme -> MaterialTheme.colors.onSurface.copy(alpha = 0.22f)
         else -> MaterialTheme.colors.onSurface.copy(alpha = 0.20f)
     }
     val background by animateColorAsState(
@@ -563,7 +604,7 @@ private fun CategoryChip(
         modifier = Modifier.clickable { onClick() },
         backgroundColor = background,
         shape = RoundedCornerShape(22.dp),
-        elevation = if (selected) 2.dp else 0.dp,
+        elevation = if (selected) 3.dp else 1.dp,
         border = BorderStroke(1.dp, borderColor)
     ) {
         Text(
@@ -753,17 +794,18 @@ private fun HorizontalBookCard(
     onFavoriteClicked: (Book) -> Unit
 ) {
     val isLightTheme = MaterialTheme.colors.isLight
+    val cardBackground = if (isLightTheme) Color(0xFFFCFBFF) else MaterialTheme.colors.surface
     Card(
         modifier = Modifier
             .width(150.dp)
             .clickable { onBookClicked(book) },
         elevation = 8.dp,
-        backgroundColor = MaterialTheme.colors.surface,
+        backgroundColor = cardBackground,
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(
             width = 1.dp,
             color = if (isLightTheme) {
-                MaterialTheme.colors.onSurface.copy(alpha = 0.10f)
+                MaterialTheme.colors.onSurface.copy(alpha = 0.14f)
             } else {
                 MaterialTheme.colors.onSurface.copy(alpha = 0.16f)
             }

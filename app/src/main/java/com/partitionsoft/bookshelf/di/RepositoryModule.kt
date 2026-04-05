@@ -2,8 +2,10 @@ package com.partitionsoft.bookshelf.di
 
 import com.partitionsoft.bookshelf.data.repository.BookRepositoryImpl
 import com.partitionsoft.bookshelf.data.repository.ReaderRepositoryImpl
+import com.partitionsoft.bookshelf.data.repository.RecommendationRepositoryImpl
 import com.partitionsoft.bookshelf.domain.repository.BookRepository
 import com.partitionsoft.bookshelf.domain.repository.ReaderRepository
+import com.partitionsoft.bookshelf.domain.repository.RecommendationRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindReaderRepository(
         repository: ReaderRepositoryImpl
     ): ReaderRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRecommendationRepository(
+        repository: RecommendationRepositoryImpl
+    ): RecommendationRepository
 }

@@ -3,7 +3,9 @@ package com.partitionsoft.bookshelf.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.MaterialTheme as Material2Theme
@@ -11,7 +13,9 @@ import androidx.compose.material.Surface as Material2Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -19,9 +23,16 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,11 +48,16 @@ import com.partitionsoft.bookshelf.ui.navigation.BooksDestinations
 import com.partitionsoft.bookshelf.ui.screens.BookDetailsRoute
 import com.partitionsoft.bookshelf.ui.screens.BrowseBooksRoute
 import com.partitionsoft.bookshelf.ui.screens.FavoritesRoute
+import com.partitionsoft.bookshelf.ui.screens.AiAssistantRoute
 import com.partitionsoft.bookshelf.ui.screens.HomeScreen
 import com.partitionsoft.bookshelf.ui.screens.LibraryRoute
 import com.partitionsoft.bookshelf.ui.screens.LocalReaderRoute
 import com.partitionsoft.bookshelf.ui.screens.MainAppBar
 import com.partitionsoft.bookshelf.ui.screens.ReaderRoute
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
 fun BooksApp(
@@ -75,8 +91,20 @@ fun BooksApp(
                 onLibraryClicked = {
                     navController.navigate(BooksDestinations.LIBRARY_ROUTE)
                 },
+                onAiAssistantClicked = {
+                    navController.navigate(BooksDestinations.AI_ASSISTANT_ROUTE)
+                },
                 onContinueReadingClicked = { documentId ->
                     navController.navigate(BooksDestinations.localReaderRoute(documentId))
+                }
+            )
+        }
+
+        composable(route = BooksDestinations.AI_ASSISTANT_ROUTE) {
+            AiAssistantRoute(
+                onBackClicked = navController::navigateUp,
+                onBookClicked = { book ->
+                    navController.navigate(BooksDestinations.detailsRoute(book.id))
                 }
             )
         }
@@ -164,6 +192,7 @@ private fun HomeRoute(
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
     onFavoritesClicked: () -> Unit,
     onLibraryClicked: () -> Unit,
+    onAiAssistantClicked: () -> Unit,
     onContinueReadingClicked: (Long) -> Unit
 ) {
     val booksViewModel: BooksViewModel = hiltViewModel()
@@ -175,6 +204,7 @@ private fun HomeRoute(
     val searchTextState by booksViewModel.searchTextState.collectAsStateWithLifecycle()
     val isSearchActive =
         searchWidgetState == BooksViewModel.SearchWidgetState.OPENED || searchTextState.isNotBlank()
+    var shouldPlayAiFabIntro by remember { mutableStateOf(true) }
 
     BackHandler(enabled = isSearchActive) {
         booksViewModel.closeSearch()
@@ -209,6 +239,7 @@ private fun HomeRoute(
         },
         onFavoritesClicked = onFavoritesClicked,
         onLibraryClicked = onLibraryClicked,
+        onAiAssistantClicked = onAiAssistantClicked,
         booksUiState = searchUiState,
         homeUiState = homeUiState,
         categoryUiState = categoryUiState,
@@ -219,7 +250,9 @@ private fun HomeRoute(
         onBookClicked = onBookClicked,
         onFavoriteClicked = booksViewModel::onFavoriteClicked,
         onBrowseRequested = onBrowseRequested,
-        onContinueReadingClicked = onContinueReadingClicked
+        onContinueReadingClicked = onContinueReadingClicked,
+        shouldPlayAiFabIntro = shouldPlayAiFabIntro,
+        onAiFabIntroFinished = { shouldPlayAiFabIntro = false }
     )
 }
 
@@ -235,6 +268,7 @@ private fun BooksAppContent(
     onSearchTriggered: () -> Unit,
     onFavoritesClicked: () -> Unit,
     onLibraryClicked: () -> Unit,
+    onAiAssistantClicked: () -> Unit,
     booksUiState: BooksUiState,
     homeUiState: HomeUiState,
     categoryUiState: CategoryShelfUiState,
@@ -245,13 +279,35 @@ private fun BooksAppContent(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
-    onContinueReadingClicked: (Long) -> Unit
+    onContinueReadingClicked: (Long) -> Unit,
+    shouldPlayAiFabIntro: Boolean,
+    onAiFabIntroFinished: () -> Unit
 ) {
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = {
+            if (!isSearchActive) {
+                ExtendedFloatingActionButton(
+                    onClick = onAiAssistantClicked,
+                    modifier = Modifier.height(52.dp),
+                    icon = {
+                        AiFabIntroIcon(
+                            playIntro = shouldPlayAiFabIntro,
+                            onIntroFinished = onAiFabIntroFinished
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.home_ai_fab_title),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                )
+            }
+        },
         topBar = {
             MainAppBar(
                 searchWidgetState = searchWidgetState,
@@ -289,10 +345,48 @@ private fun BooksAppContent(
                     onFavoriteClicked = onFavoriteClicked,
                     onSearchRetry = searchRetryAction,
                     onBrowseRequested = onBrowseRequested,
+                    onAiAssistantClicked = onAiAssistantClicked,
                     onContinueReadingClicked = onContinueReadingClicked
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AiFabIntroIcon(
+    playIntro: Boolean,
+    onIntroFinished: () -> Unit
+) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.favorite_burst)
+    )
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        isPlaying = playIntro && composition != null,
+        iterations = 1,
+        restartOnPlay = false
+    )
+
+    LaunchedEffect(playIntro, composition, progress) {
+        if (playIntro && composition != null && progress >= 0.999f) {
+            onIntroFinished()
+        }
+    }
+
+    if (playIntro && composition != null) {
+        LottieAnimation(
+            composition = composition,
+            progress = { progress },
+            modifier = Modifier
+                .size(20.dp)
+                .clip(MaterialTheme.shapes.small)
+        )
+    } else {
+        Icon(
+            imageVector = Icons.Filled.AutoAwesome,
+            contentDescription = null
+        )
     }
 }
 
@@ -309,6 +403,7 @@ private fun BooksAppContentPreview() {
         onSearchTriggered = {},
         onFavoritesClicked = {},
         onLibraryClicked = {},
+        onAiAssistantClicked = {},
         booksUiState = BooksUiState.Success(bookSearch = emptyList()),
         homeUiState = HomeUiState(
             isLoading = false,
@@ -324,7 +419,9 @@ private fun BooksAppContentPreview() {
         onBookClicked = {},
         onFavoriteClicked = {},
         onBrowseRequested = { _, _, _, _ -> },
-        onContinueReadingClicked = {}
+        onContinueReadingClicked = {},
+        shouldPlayAiFabIntro = false,
+        onAiFabIntroFinished = {}
     )
 }
 

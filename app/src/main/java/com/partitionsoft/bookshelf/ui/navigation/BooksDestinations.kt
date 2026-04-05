@@ -6,6 +6,7 @@ object BooksDestinations {
     const val HOME_ROUTE = "home"
     const val LIBRARY_ROUTE = "library"
     const val FAVORITES_ROUTE = "favorites"
+    const val AI_ASSISTANT_ROUTE = "ai_assistant"
     const val DETAILS_ROUTE = "details/{bookId}"
     const val READER_ROUTE = "reader/{bookId}"
     const val LOCAL_READER_ROUTE = "reader/local/{documentId}"
@@ -41,4 +42,3 @@ object BooksDestinations {
         append(Uri.encode(filter.orEmpty()))
     }
 }
-

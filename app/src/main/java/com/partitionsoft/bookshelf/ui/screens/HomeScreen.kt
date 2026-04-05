@@ -70,6 +70,7 @@ fun HomeScreen(
     onFavoriteClicked: (Book) -> Unit,
     onSearchRetry: () -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
+    onAiAssistantClicked: () -> Unit,
     onContinueReadingClicked: (Long) -> Unit
 ) {
     val hasHomeContent = homeUiState.hasRenderableContent()
@@ -110,6 +111,7 @@ fun HomeScreen(
             onBookClicked = onBookClicked,
             onFavoriteClicked = onFavoriteClicked,
             onBrowseRequested = onBrowseRequested,
+            onAiAssistantClicked = onAiAssistantClicked,
             onContinueReadingClicked = onContinueReadingClicked,
             onRetryHome = retryAction
         )
@@ -215,6 +217,7 @@ private fun HomeFeedList(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
+    onAiAssistantClicked: () -> Unit,
     onContinueReadingClicked: (Long) -> Unit,
     onRetryHome: () -> Unit
 ) {
@@ -229,7 +232,7 @@ private fun HomeFeedList(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 24.dp)
     ) {
         item(key = "home_intro") {
-            HomeIntroCard()
+            HomeIntroCard(onAiAssistantClicked = onAiAssistantClicked)
         }
 
         homeError?.let { error ->
@@ -297,7 +300,7 @@ private fun HomeFeedList(
 }
 
 @Composable
-private fun HomeIntroCard() {
+private fun HomeIntroCard(onAiAssistantClicked: () -> Unit) {
     val isLightTheme = MaterialTheme.colors.isLight
     val cardBackground = if (isLightTheme) Color(0xFFF7F3FF) else MaterialTheme.colors.surface
     val borderColor = if (isLightTheme) {
@@ -327,6 +330,9 @@ private fun HomeIntroCard() {
                 style = MaterialTheme.typography.body2,
                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f)
             )
+            TextButton(onClick = onAiAssistantClicked) {
+                Text(text = stringResource(id = R.string.home_ai_assistant_action))
+            }
         }
     }
 }

@@ -21,6 +21,8 @@
     <string name="home_categories_title">Перегляд за категоріями</string>
     <string name="home_intro_title">Книги на всі часи. Читайте безкоштовно та насолоджуйтесь.</string>
     <string name="home_intro_supporting">Відкривайте добірки, популярні категорії та продовжуйте читання з того місця, де зупинились.</string>
+    <string name="home_ai_assistant_action">Запитати AI про рекомендації</string>
+    <string name="home_ai_fab_title">AI рекомендації книг</string>
     <string name="home_category_shelf_title">Популярне в категорії %1$s</string>
     <string name="home_category_error">Не вдалося завантажити цю категорію.</string>
     <string name="details_about_book">Про книгу</string>
@@ -65,4 +67,17 @@
     <string name="format_fb2">Електронна книга (FB2)</string>
     <string name="format_unknown">Документ</string>
     <string name="book_details">Про книгу</string>
+    <string name="ai_assistant_title">AI помічник для книг</string>
+    <string name="ai_assistant_subtitle">Базовий режим AI. Залишилось запитів на сьогодні: %1$d.</string>
+    <string name="ai_assistant_subtitle_premium">Преміум режим AI без обмежень.</string>
+    <string name="ai_assistant_subtitle_unlimited">Рекомендації без ліміту на запити!</string>
+    <string name="ai_assistant_welcome">Опишіть настрій, жанр або мету читання.</string>
+    <string name="ai_assistant_found_recommendations">Знайшов %1$d рекомендацій для вас.</string>
+    <string name="ai_assistant_load_error">Зараз не вдалося завантажити рекомендації. Спробуйте ще раз.</string>
+    <string name="ai_prompt_sci_fi">Наукова фантастика на вечір</string>
+    <string name="ai_prompt_sci_fi_query">Порадь коротку науково-фантастичну книгу на вечір</string>
+    <string name="ai_prompt_productivity">Книги про продуктивність</string>
+    <string name="ai_prompt_productivity_query">Хочу практичні книги про продуктивність</string>
+    <string name="ai_assistant_input_hint">Опишіть, що ви хочете почитати</string>
+    <string name="ai_assistant_send">Надіслати запит</string>
 </resources>

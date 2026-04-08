@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -28,8 +29,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.size.Precision
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
+import com.partitionsoft.bookshelf.domain.model.optimizedBookCoverUrlOrNull
 import com.partitionsoft.bookshelf.ui.theme.LocalSpacing
 
 @Composable
@@ -142,6 +145,11 @@ fun BookCover(
     } else {
         modifier.fillMaxWidth()
     }
+    val imageContentScale = if (useDefaultAspectRatio) {
+        ContentScale.Crop
+    } else {
+        ContentScale.FillWidth
+    }
     Box(
         modifier = coverModifier,
         contentAlignment = Alignment.Center
@@ -149,16 +157,20 @@ fun BookCover(
         AsyncImage(
             modifier = Modifier.fillMaxSize(),
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(thumbnail?.replace("http:", "https:"))
+                .data(thumbnail.optimizedBookCoverUrlOrNull())
                 .crossfade(true)
+                .allowRgb565(false)
+                .precision(Precision.INEXACT)
                 .build(),
+            fallback = placeholder,
             error = placeholder,
             placeholder = painterResource(id = R.drawable.loading_img),
             contentDescription = stringResource(
                 id = R.string.book_cover_content_description,
                 title
             ),
-            contentScale = ContentScale.Crop
+            contentScale = imageContentScale,
+            filterQuality = FilterQuality.High
         )
     }
 }

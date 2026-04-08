@@ -29,7 +29,11 @@ data class VolumeInfoDto(
 
 data class ImageLinksDto(
     @SerializedName("smallThumbnail") val smallThumbnail: String? = null,
-    @SerializedName("thumbnail") val thumbnail: String? = null
+    @SerializedName("thumbnail") val thumbnail: String? = null,
+    @SerializedName("small") val small: String? = null,
+    @SerializedName("medium") val medium: String? = null,
+    @SerializedName("large") val large: String? = null,
+    @SerializedName("extraLarge") val extraLarge: String? = null
 )
 
 data class AccessInfoDto(

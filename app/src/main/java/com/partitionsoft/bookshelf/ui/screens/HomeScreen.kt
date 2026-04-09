@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -516,8 +517,8 @@ private fun FeaturedBookCard(
                 thumbnail = book.thumbnail,
                 title = book.title,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp),
+                    .fillMaxHeight()
+                    .fillMaxWidth(),
                 useDefaultAspectRatio = false
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -835,7 +836,7 @@ private fun HorizontalBookCard(
                 title = book.title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp),
+                    .height(190.dp),
                 useDefaultAspectRatio = false
             )
             Spacer(modifier = Modifier.height(8.dp))

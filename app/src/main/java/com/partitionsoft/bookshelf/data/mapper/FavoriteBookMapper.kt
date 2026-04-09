@@ -2,6 +2,7 @@ package com.partitionsoft.bookshelf.data.mapper
 
 import com.partitionsoft.bookshelf.data.local.FavoriteBookEntity
 import com.partitionsoft.bookshelf.domain.model.Book
+import com.partitionsoft.bookshelf.domain.model.optimizedBookCoverUrlOrNull
 
 private const val LIST_DELIMITER = "\u001F"
 
@@ -15,7 +16,7 @@ fun Book.toFavoriteEntity(savedAtMillis: Long = System.currentTimeMillis()): Fav
         categories = categories.joinToString(separator = LIST_DELIMITER),
         rating = rating,
         ratingsCount = ratingsCount,
-        thumbnail = thumbnail,
+        thumbnail = thumbnail.optimizedBookCoverUrlOrNull(),
         previewLink = previewLink,
         webReaderLink = webReaderLink,
         embeddable = embeddable,
@@ -33,7 +34,7 @@ fun FavoriteBookEntity.toDomain(): Book = Book(
     categories = categories.splitList(),
     rating = rating,
     ratingsCount = ratingsCount,
-    thumbnail = thumbnail,
+    thumbnail = thumbnail.optimizedBookCoverUrlOrNull(),
     previewLink = previewLink,
     webReaderLink = webReaderLink,
     embeddable = embeddable,

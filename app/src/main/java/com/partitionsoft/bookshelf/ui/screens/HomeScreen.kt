@@ -2,7 +2,6 @@ package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,11 +23,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -133,8 +135,8 @@ private fun HomeQuotaErrorScreen(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = 4.dp,
-            backgroundColor = MaterialTheme.colors.primary.copy(alpha = 0.08f)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f))
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -142,18 +144,18 @@ private fun HomeQuotaErrorScreen(
             ) {
                 Text(
                     text = stringResource(id = R.string.home_quota_status_label),
-                    style = MaterialTheme.typography.overline,
-                    color = MaterialTheme.colors.primary,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = stringResource(id = R.string.home_quota_title),
-                    style = MaterialTheme.typography.h6
+                    style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
                     text = stringResource(id = R.string.home_quota_supporting),
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.78f)
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -302,18 +304,13 @@ private fun HomeFeedList(
 
 @Composable
 private fun HomeIntroCard(onAiAssistantClicked: () -> Unit) {
-    val isLightTheme = MaterialTheme.colors.isLight
-    val cardBackground = if (isLightTheme) Color(0xFFF7F3FF) else MaterialTheme.colors.surface
-    val borderColor = if (isLightTheme) {
-        MaterialTheme.colors.primary.copy(alpha = 0.24f)
-    } else {
-        MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
-    }
+    val cardBackground = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp,
-        backgroundColor = cardBackground,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBackground),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, borderColor)
     ) {
@@ -323,13 +320,13 @@ private fun HomeIntroCard(onAiAssistantClicked: () -> Unit) {
         ) {
             Text(
                 text = stringResource(id = R.string.home_intro_title),
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = stringResource(id = R.string.home_intro_supporting),
-                style = MaterialTheme.typography.body2,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f)
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             TextButton(onClick = onAiAssistantClicked) {
                 Text(text = stringResource(id = R.string.home_ai_assistant_action))
@@ -345,8 +342,8 @@ private fun HomeInlineStatusCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = 2.dp,
-        backgroundColor = MaterialTheme.colors.surface
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
@@ -358,8 +355,8 @@ private fun HomeInlineStatusCard(
                 } else {
                     stringResource(id = R.string.loading_failed)
                 },
-                style = MaterialTheme.typography.overline,
-                color = MaterialTheme.colors.primary,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -368,8 +365,8 @@ private fun HomeInlineStatusCard(
                 } else {
                     stringResource(id = R.string.error_supporting_copy)
                 },
-                style = MaterialTheme.typography.body2,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.82f)
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             TextButton(onClick = onRetry) {
                 Text(text = stringResource(id = R.string.retry))
@@ -386,12 +383,14 @@ private fun ContinueReadingCard(
     document: ReaderDocument,
     onOpen: () -> Unit
 ) {
+    val containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onOpen),
-        elevation = 8.dp,
-        backgroundColor = MaterialTheme.colors.primary.copy(alpha = 0.08f)
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f)),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -399,15 +398,15 @@ private fun ContinueReadingCard(
         ) {
             Text(
                 text = document.title,
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = continueReadingProgressLabel(document),
-                style = MaterialTheme.typography.caption,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f)
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             TextButton(onClick = onOpen) {
                 Text(text = stringResource(id = R.string.home_continue_reading_action))
@@ -482,22 +481,17 @@ private fun FeaturedBookCard(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit
 ) {
-    val isLightTheme = MaterialTheme.colors.isLight
-    val cardBackground = if (isLightTheme) Color(0xFFFCFBFF) else MaterialTheme.colors.surface
+    val cardBackground = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
     Card(
         modifier = Modifier
             .width(260.dp)
             .clickable { onBookClicked(book) },
-        elevation = 10.dp,
-        backgroundColor = cardBackground,
+        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBackground),
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(
             width = 1.dp,
-            color = if (isLightTheme) {
-                MaterialTheme.colors.onSurface.copy(alpha = 0.14f)
-            } else {
-                MaterialTheme.colors.onSurface.copy(alpha = 0.16f)
-            }
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -524,7 +518,7 @@ private fun FeaturedBookCard(
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = book.title,
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -538,8 +532,8 @@ private fun FeaturedBookCard(
             if (book.authors.isNotEmpty()) {
                 Text(
                     text = book.authors.joinToString(),
-                    style = MaterialTheme.typography.caption,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -575,53 +569,29 @@ private fun CategoryChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val isLightTheme = MaterialTheme.colors.isLight
-    val targetBackground = when {
-        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.2f else 0.22f)
-        isLightTheme -> MaterialTheme.colors.onSurface.copy(alpha = 0.045f)
-        else -> MaterialTheme.colors.onSurface.copy(alpha = 0.08f)
-    }
-    val targetContent = if (selected) {
-        MaterialTheme.colors.primary
-    } else {
-        MaterialTheme.colors.onSurface.copy(alpha = 0.86f)
-    }
-    val targetBorder = when {
-        selected -> MaterialTheme.colors.primary.copy(alpha = if (isLightTheme) 0.48f else 0.52f)
-        isLightTheme -> MaterialTheme.colors.onSurface.copy(alpha = 0.22f)
-        else -> MaterialTheme.colors.onSurface.copy(alpha = 0.20f)
-    }
-    val background by animateColorAsState(
-        targetValue = targetBackground,
-        animationSpec = tween(250),
-        label = "chip_bg"
-    )
-    val contentColor by animateColorAsState(
-        targetValue = targetContent,
-        animationSpec = tween(250),
-        label = "chip_text"
-    )
-    val borderColor by animateColorAsState(
-        targetValue = targetBorder,
-        animationSpec = tween(250),
-        label = "chip_border"
-    )
-
-    Card(
-        modifier = Modifier.clickable { onClick() },
-        backgroundColor = background,
-        shape = RoundedCornerShape(22.dp),
-        elevation = if (selected) 3.dp else 1.dp,
-        border = BorderStroke(1.dp, borderColor)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            color = contentColor,
-            style = MaterialTheme.typography.body2,
-            maxLines = 1
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1
+            )
+        },
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
+            selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+        ),
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
-    }
+    )
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -670,8 +640,8 @@ private fun CategoryShelfSection(
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = stringResource(id = R.string.loading),
-                            style = MaterialTheme.typography.caption,
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.65f),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         LazyRow(
@@ -689,8 +659,8 @@ private fun CategoryShelfSection(
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = stringResource(id = R.string.home_category_error),
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f),
-                            style = MaterialTheme.typography.caption,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         LazyRow(
@@ -707,7 +677,7 @@ private fun CategoryShelfSection(
                 state.books.isEmpty() -> {
                     Text(
                         text = stringResource(id = R.string.empty_results_supporting),
-                        style = MaterialTheme.typography.caption
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
 
@@ -800,22 +770,17 @@ private fun HorizontalBookCard(
     onBookClicked: (Book) -> Unit,
     onFavoriteClicked: (Book) -> Unit
 ) {
-    val isLightTheme = MaterialTheme.colors.isLight
-    val cardBackground = if (isLightTheme) Color(0xFFFCFBFF) else MaterialTheme.colors.surface
+    val cardBackground = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
     Card(
         modifier = Modifier
             .width(150.dp)
             .clickable { onBookClicked(book) },
-        elevation = 8.dp,
-        backgroundColor = cardBackground,
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBackground),
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(
             width = 1.dp,
-            color = if (isLightTheme) {
-                MaterialTheme.colors.onSurface.copy(alpha = 0.14f)
-            } else {
-                MaterialTheme.colors.onSurface.copy(alpha = 0.16f)
-            }
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f)
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -842,7 +807,7 @@ private fun HorizontalBookCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = book.title,
-                style = MaterialTheme.typography.body2,
+                style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -869,13 +834,13 @@ private fun EmptyScreen(
     ) {
         Text(
             text = stringResource(id = R.string.empty_results_title),
-            style = MaterialTheme.typography.h6,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = stringResource(id = R.string.empty_results_supporting),
-            style = MaterialTheme.typography.body2,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(24.dp))

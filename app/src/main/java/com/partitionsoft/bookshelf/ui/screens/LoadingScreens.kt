@@ -7,11 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,7 +36,8 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(id = R.string.loading),
-            style = MaterialTheme.typography.body1,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
@@ -71,7 +72,7 @@ private fun LottieBookLoader(size: androidx.compose.ui.unit.Dp) {
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.MenuBook,
             contentDescription = stringResource(id = R.string.loading),
-            tint = MaterialTheme.colors.primary,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(size * 0.42f)
         )
     }

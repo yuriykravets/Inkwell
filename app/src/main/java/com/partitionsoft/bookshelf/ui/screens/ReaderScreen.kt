@@ -10,6 +10,10 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,14 +22,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,14 +39,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.ui.ReaderUiState
 import com.partitionsoft.bookshelf.ui.ReaderViewModel
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun ReaderRoute(
     onBackClicked: () -> Unit,
     viewModel: ReaderViewModel = hiltViewModel()
@@ -53,39 +62,51 @@ fun ReaderRoute(
             .windowInsetsPadding(WindowInsets.systemBars),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Reader") },
+                title = { Text(text = stringResource(id = R.string.reader_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.back)
+                        )
                     }
                 }
             )
         }
     ) { paddingValues ->
-        when (val state = uiState) {
-            ReaderUiState.Loading -> LoadingScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
-            ReaderUiState.Error -> ErrorScreen(
-                retryAction = viewModel::loadReader,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
-            ReaderUiState.Unavailable -> ReaderUnavailable(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
-            is ReaderUiState.Ready -> ReaderWebView(
-                url = state.readerUrl,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                onCloseRequested = onBackClicked
-            )
+        AnimatedContent(
+            targetState = uiState,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "reader_state"
+        ) { state ->
+            when (state) {
+                ReaderUiState.Loading -> LoadingScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
+
+                ReaderUiState.Error -> ErrorScreen(
+                    retryAction = viewModel::loadReader,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
+
+                ReaderUiState.Unavailable -> ReaderUnavailable(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
+
+                is ReaderUiState.Ready -> ReaderWebView(
+                    url = state.readerUrl,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    onCloseRequested = onBackClicked
+                )
+            }
         }
     }
 }
@@ -173,12 +194,12 @@ private fun ReaderUnavailable(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Preview is unavailable for this book.",
-            style = MaterialTheme.typography.h6
+            text = stringResource(id = R.string.preview_unavailable),
+            style = MaterialTheme.typography.headlineSmall
         )
         if (onCloseRequested != null) {
-            androidx.compose.material.TextButton(onClick = onCloseRequested) {
-                Text(text = "Back")
+            TextButton(onClick = onCloseRequested) {
+                Text(text = stringResource(id = R.string.back))
             }
         }
     }

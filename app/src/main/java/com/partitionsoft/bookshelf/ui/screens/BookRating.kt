@@ -2,11 +2,11 @@ package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,17 +39,17 @@ fun BookRating(
         Icon(
             imageVector = Icons.Filled.Star,
             contentDescription = stringResource(id = R.string.details_rating),
-            tint = MaterialTheme.colors.primary
+            tint = MaterialTheme.colorScheme.primary
         )
         Text(
             text = ratingText,
-            style = if (compact) MaterialTheme.typography.caption else MaterialTheme.typography.body2,
-            color = MaterialTheme.colors.onSurface
+            style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = countText,
-            style = MaterialTheme.typography.caption,
-            color = MaterialTheme.colors.onSurface.copy(alpha = 0.65f)
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -90,17 +90,17 @@ fun FavoriteToggleButton(
 
     val containerColor by animateColorAsState(
         targetValue = when {
-            style == FavoriteToggleStyle.Overlay && isFavorite -> MaterialTheme.colors.primary.copy(alpha = 0.24f)
-            style == FavoriteToggleStyle.Overlay -> MaterialTheme.colors.surface.copy(alpha = 0.92f)
-            isFavorite -> MaterialTheme.colors.primary.copy(alpha = 0.14f)
-            else -> MaterialTheme.colors.onSurface.copy(alpha = 0.06f)
+            style == FavoriteToggleStyle.Overlay && isFavorite -> MaterialTheme.colorScheme.primaryContainer
+            style == FavoriteToggleStyle.Overlay -> MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
+            isFavorite -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)
+            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.56f)
         },
         animationSpec = tween(durationMillis = 220),
         label = "favorite_container"
     )
 
     val iconTint by animateColorAsState(
-        targetValue = if (isFavorite) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface.copy(alpha = 0.82f),
+        targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(durationMillis = 210),
         label = "favorite_tint"
     )

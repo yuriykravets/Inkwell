@@ -35,6 +35,10 @@
     <string name="details_rating">Rating:</string>
     <string name="read_preview">Read preview</string>
     <string name="open_in_browser">Open in browser</string>
+    <string name="share_book" translatable="false">Share book</string>
+    <string name="share_book_chooser" translatable="false">Share book via</string>
+    <string name="share_install_cta">Get %1$s:</string>
+    <string name="share_app_link" translatable="false">https://play.google.com/store/apps/details?id=com.partitionsoft.bookshelf</string>
     <string name="back">Back</string>
     <string name="reader_title">Reader</string>
     <string name="preview_unavailable">Preview is unavailable for this book.</string>

@@ -44,6 +44,7 @@ fun BookDetailsRoute(
     onBackClicked: () -> Unit,
     onReadClicked: (String) -> Unit,
     onPreviewClicked: (String) -> Unit,
+    onShareClicked: (String) -> Unit,
     viewModel: BookDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -79,6 +80,7 @@ fun BookDetailsRoute(
                 contentPadding = paddingValues,
                 onReadClicked = onReadClicked,
                 onPreviewClicked = onPreviewClicked,
+                onShareClicked = onShareClicked,
                 onFavoriteClicked = viewModel::onFavoriteClicked
             )
         }
@@ -91,6 +93,7 @@ private fun BookDetailsContent(
     contentPadding: PaddingValues,
     onReadClicked: (String) -> Unit,
     onPreviewClicked: (String) -> Unit,
+    onShareClicked: (String) -> Unit,
     onFavoriteClicked: (Book) -> Unit
 ) {
     val spacing = LocalSpacing.current
@@ -173,6 +176,23 @@ private fun BookDetailsContent(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
+        InkwellSecondaryButton(
+            text = stringResource(id = R.string.share_book),
+            onClick = { onShareClicked(book.toShareText()) },
+            modifier = Modifier.fillMaxWidth(),
+            tonal = true
+        )
+    }
+}
+
+private fun Book.toShareText(): String {
+    val preferredLink = previewLink?.takeIf { it.isNotBlank() }
+        ?: webReaderLink?.takeIf { it.isNotBlank() }
+    return if (preferredLink == null) {
+        title
+    } else {
+        "$title\n$preferredLink"
     }
 }
 

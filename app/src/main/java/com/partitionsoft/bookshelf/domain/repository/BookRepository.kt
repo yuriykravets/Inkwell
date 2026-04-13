@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface BookRepository {
 
+    suspend fun preloadHomeFeed()
+
     fun searchBooks(query: String, maxResults: Int = 40): Flow<Result<List<Book>>>
 
     fun getBooksByCategory(categoryQuery: String, maxResults: Int = 10): Flow<Result<List<Book>>>

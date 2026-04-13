@@ -1,10 +1,14 @@
 package com.partitionsoft.bookshelf.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,17 +23,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,12 +51,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.ui.BrowseBooksViewModel
+import com.partitionsoft.bookshelf.ui.theme.LocalSpacing
 import kotlinx.coroutines.delay
 
 @Composable
@@ -70,6 +78,7 @@ fun BrowseBooksRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowseBooksScreen(
     title: String,
@@ -79,6 +88,7 @@ private fun BrowseBooksScreen(
     favoriteIds: Set<String>,
     onFavoriteClicked: (Book) -> Unit
 ) {
+    val spacing = LocalSpacing.current
     var appendRetryCount by remember { mutableStateOf(0) }
     val appendState = books.loadState.append
 
@@ -119,68 +129,69 @@ private fun BrowseBooksScreen(
             )
         }
     ) { paddingValues ->
-        val refreshState = books.loadState.refresh
-        when {
-            refreshState is LoadState.Loading -> {
-                PagingShimmerGrid(modifier = Modifier.padding(paddingValues))
-            }
-
-            refreshState is LoadState.Error -> {
-                PagingError(
+        AnimatedContent(
+            targetState = books.loadState.refresh,
+            transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(180)) },
+            label = "browse_refresh_state"
+        ) { state ->
+            when (state) {
+                is LoadState.Loading -> PagingShimmerGrid(modifier = Modifier.padding(paddingValues))
+                is LoadState.Error -> PagingError(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
                     onRetry = books::retry
                 )
-            }
 
-            else -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(160.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        count = books.itemCount,
-                        key = { index ->
-                            val id = books[index]?.id.orEmpty()
-                            if (id.isBlank()) "placeholder_$index" else "${id}_$index"
-                        }
-                    ) { index ->
-                        val item = books[index]
-                        if (item != null) {
-                            BooksCard(
-                                book = item.copy(isFavorite = favoriteIds.contains(item.id)),
-                                onBookClicked = onBookClicked,
-                                onFavoriteClicked = onFavoriteClicked
-                            )
-                        }
-                    }
-
-                    if (books.loadState.append is LoadState.Loading) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
+                else -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(160.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(spacing.sm)
+                    ) {
+                        items(
+                            count = books.itemCount,
+                            key = { index ->
+                                val id = books[index]?.id.orEmpty()
+                                if (id.isBlank()) "placeholder_$index" else "${id}_$index"
+                            }
+                        ) { index ->
+                            val item = books[index]
+                            if (item != null) {
+                                BooksCard(
+                                    book = item.copy(isFavorite = favoriteIds.contains(item.id)),
+                                    onBookClicked = onBookClicked,
+                                    onFavoriteClicked = onFavoriteClicked
+                                )
                             }
                         }
-                    }
 
-                    if (books.loadState.append is LoadState.Error && appendRetryCount >= MAX_APPEND_RETRIES) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Text(
-                                text = stringResource(id = R.string.loading_failed),
-                                style = MaterialTheme.typography.caption,
-                                modifier = Modifier.padding(vertical = 12.dp)
-                            )
+                        if (books.loadState.append is LoadState.Loading) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = spacing.sm),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+
+                        if (books.loadState.append is LoadState.Error && appendRetryCount >= MAX_APPEND_RETRIES) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Text(
+                                    text = stringResource(id = R.string.loading_failed),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(vertical = spacing.sm)
+                                )
+                            }
                         }
                     }
                 }
@@ -196,6 +207,7 @@ private fun PagingError(
     modifier: Modifier = Modifier,
     onRetry: () -> Unit
 ) {
+    val spacing = LocalSpacing.current
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -203,9 +215,9 @@ private fun PagingError(
     ) {
         Text(
             text = stringResource(id = R.string.loading_failed),
-            style = MaterialTheme.typography.h6
+            style = MaterialTheme.typography.headlineSmall
         )
-        Button(onClick = onRetry, modifier = Modifier.padding(top = 12.dp)) {
+        Button(onClick = onRetry, modifier = Modifier.padding(top = spacing.sm)) {
             Text(text = stringResource(id = R.string.retry))
         }
     }
@@ -213,12 +225,13 @@ private fun PagingError(
 
 @Composable
 private fun PagingShimmerGrid(modifier: Modifier = Modifier) {
+    val spacing = LocalSpacing.current
     LazyVerticalGrid(
         columns = GridCells.Adaptive(160.dp),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm)
     ) {
         items(8) {
             ShimmerBookCard()
@@ -228,6 +241,7 @@ private fun PagingShimmerGrid(modifier: Modifier = Modifier) {
 
 @Composable
 fun ShimmerBookCard(modifier: Modifier = Modifier) {
+    val spacing = LocalSpacing.current
     val transition = rememberInfiniteTransition(label = "shimmer")
     val alpha by transition.animateFloat(
         initialValue = 0.35f,
@@ -239,40 +253,44 @@ fun ShimmerBookCard(modifier: Modifier = Modifier) {
         label = "shimmer_alpha"
     )
 
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
                     .height(16.dp)
                     .alpha(alpha)
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.15f))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .height(12.dp)
                     .alpha(alpha)
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.16f))
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .alpha(alpha)
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.14f))
             )
             Box(
                 modifier = Modifier
                     .width(90.dp)
                     .height(10.dp)
                     .alpha(alpha)
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.14f))
             )
         }
     }
@@ -283,4 +301,3 @@ fun ShimmerBookCard(modifier: Modifier = Modifier) {
 fun ShimmerBookCardPreview() {
     ShimmerBookCard()
 }
-

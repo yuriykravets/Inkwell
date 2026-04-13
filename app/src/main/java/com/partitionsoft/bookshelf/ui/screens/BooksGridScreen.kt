@@ -1,6 +1,7 @@
 package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,15 +9,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.FilterQuality
@@ -75,12 +79,16 @@ fun BooksCard(
     onFavoriteClicked: (Book) -> Unit = {}
 ) {
     val spacing = LocalSpacing.current
-    ElevatedCard(
+    Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onBookClicked(book) },
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f))
     ) {
         Column(
             modifier = Modifier
@@ -88,6 +96,14 @@ fun BooksCard(
                 .padding(spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.xs)
         ) {
+            BookCover(
+                thumbnail = book.thumbnail,
+                title = book.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
+                useDefaultAspectRatio = false
+            )
             Text(
                 text = book.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -118,7 +134,6 @@ fun BooksCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            BookCover(thumbnail = book.thumbnail, title = book.title)
             if (!book.publishedDate.isNullOrBlank()) {
                 Text(
                     text = stringResource(id = R.string.published_in, book.publishedDate),

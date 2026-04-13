@@ -89,8 +89,7 @@ fun OpenedAppBar(
     ) {
         TextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .fillMaxWidth(),
             value = text,
             onValueChange = onTextChange,
             shape = RoundedCornerShape(28.dp),

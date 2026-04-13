@@ -2,7 +2,9 @@ package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,11 +23,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.bookshelf.R
@@ -40,6 +42,7 @@ fun ClosedAppBar(
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             actionIconContentColor = MaterialTheme.colorScheme.onSurface
         ),
@@ -60,7 +63,7 @@ fun ClosedAppBar(
             IconButton(onClick = onSearchClicked) {
                 Icon(
                     imageVector = Icons.Filled.Search,
-                    contentDescription = "Search"
+                    contentDescription = stringResource(id = R.string.search_action)
                 )
             }
         }
@@ -80,24 +83,24 @@ fun OpenedAppBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp),
-        shadowElevation = 4.dp,
+        tonalElevation = 2.dp,
+        shadowElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface
     ) {
         TextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             value = text,
             onValueChange = onTextChange,
+            shape = RoundedCornerShape(28.dp),
             placeholder = {
                 Text(
                     modifier = Modifier.alpha(0.7f),
-                    text = "Search here...",
+                    text = stringResource(id = R.string.search_hint),
                     color = onSurface.copy(alpha = 0.6f)
                 )
             },
-            textStyle = TextStyle(
-                color = onSurface,
-                fontSize = MaterialTheme.typography.bodyLarge.fontSize
-            ),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = onSurface),
             singleLine = true,
             leadingIcon = {
                 IconButton(
@@ -117,7 +120,7 @@ fun OpenedAppBar(
                         IconButton(onClick = { onTextChange("") }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(id = R.string.clear_action),
                                 tint = onSurface
                             )
                         }
@@ -125,7 +128,7 @@ fun OpenedAppBar(
                     IconButton(onClick = { onSearchClicked(text) }) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = stringResource(id = R.string.search_action),
                             tint = onSurface
                         )
                     }
@@ -136,10 +139,12 @@ fun OpenedAppBar(
             colors = TextFieldDefaults.colors(
                 focusedTextColor = onSurface,
                 unfocusedTextColor = onSurface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = onSurface.copy(alpha = 0.2f),
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                focusedPlaceholderColor = onSurface.copy(alpha = 0.65f),
+                unfocusedPlaceholderColor = onSurface.copy(alpha = 0.55f),
+                focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
                 cursorColor = MaterialTheme.colorScheme.primary
             )
         )

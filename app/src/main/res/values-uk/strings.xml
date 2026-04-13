@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Inkwell - Бібліотека книг</string>
     <string name="loading_failed">Не вдалося завантажити</string>
+    <string name="search_hint">Пошук книг</string>
+    <string name="search_action">Пошук</string>
+    <string name="clear_action">Очистити запит</string>
     <string name="retry">Спробувати ще раз</string>
     <string name="loading">Завантаження</string>
     <string name="content_description">Книга</string>
@@ -32,6 +35,10 @@
     <string name="details_rating">Рейтинг:</string>
     <string name="read_preview">Читати уривок</string>
     <string name="open_in_browser">Відкрити в браузері</string>
+    <string name="share_book">Поділитися книгою</string>
+    <string name="share_book_chooser">Поділитися через</string>
+    <string name="share_install_cta">Спробуйте %1$s:</string>
+    <string name="share_app_link">https://play.google.com/store/apps/details?id=com.partitionsoft.bookshelf</string>
     <string name="back">Назад</string>
     <string name="reader_title">Читалка</string>
     <string name="preview_unavailable">Попередній перегляд недоступний для цієї книги.</string>

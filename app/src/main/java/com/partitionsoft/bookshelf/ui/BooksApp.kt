@@ -1,5 +1,6 @@
 package com.partitionsoft.bookshelf.ui
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -160,10 +161,28 @@ fun BooksApp(
                     navController.navigate(BooksDestinations.readerRoute(bookId))
                 },
                 onPreviewClicked = { previewLink ->
+                    navController.context.startActivity(Intent(Intent.ACTION_VIEW, previewLink.toUri()))
+                },
+                onShareClicked = { shareText ->
+                    val appInvite = navController.context.getString(
+                        R.string.share_install_cta,
+                        navController.context.getString(R.string.app_name)
+                    )
+                    val combinedShareText = buildString {
+                        append(shareText)
+                        append("\n\n")
+                        append(appInvite)
+                        append("\n")
+                        append(navController.context.getString(R.string.share_app_link))
+                    }
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, combinedShareText)
+                    }
                     navController.context.startActivity(
-                        android.content.Intent(
-                            android.content.Intent.ACTION_VIEW,
-                            previewLink.toUri()
+                        Intent.createChooser(
+                            shareIntent,
+                            navController.context.getString(R.string.share_book_chooser)
                         )
                     )
                 }

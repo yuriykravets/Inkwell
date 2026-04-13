@@ -23,10 +23,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -38,6 +41,7 @@ class BookRepositoryImpl @Inject constructor(
     private val openLibraryService: OpenLibraryService,
     private val favoriteBookDao: FavoriteBookDao
 ) : BookRepository {
+    private val homeFeedState = MutableStateFlow<Result<HomeFeed>?>(null)
 
     override fun observePagedBooks(
         query: String,
@@ -151,19 +155,31 @@ class BookRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    override suspend fun preloadHomeFeed() {
+        if (homeFeedState.value is Result.Success) return
+
+        homeFeedState.value = Result.Loading
+        homeFeedState.value = safeApiCall { buildHomeFeed() }
+    }
+
     override fun observeHomeFeed(): Flow<Result<HomeFeed>> = flow {
-        emit(Result.Loading)
-        when (val result = safeApiCall { buildHomeFeed() }) {
-            is Result.Success -> {
-                emitAll(
-                    observeFavoriteIds().map { favoriteIds ->
-                        Result.Success(result.data.markFavorites(favoriteIds))
-                    }
-                )
-            }
-            is Result.Error -> emit(result)
-            Result.Loading -> Unit
+        val hasCachedHome = homeFeedState.value is Result.Success
+        if (!hasCachedHome) {
+            emit(Result.Loading)
+            preloadHomeFeed()
         }
+
+        emitAll(
+            homeFeedState
+                .filterNotNull()
+                .combine(observeFavoriteIds()) { cachedResult, favoriteIds ->
+                    when (cachedResult) {
+                        is Result.Success -> Result.Success(cachedResult.data.markFavorites(favoriteIds))
+                        is Result.Error -> cachedResult
+                        Result.Loading -> Result.Loading
+                    }
+                }
+        )
     }.flowOn(Dispatchers.IO)
 
     override fun observeFavoriteBooks(): Flow<List<Book>> =
@@ -187,12 +203,7 @@ class BookRepositoryImpl @Inject constructor(
 
     private suspend fun buildHomeFeed(): HomeFeed = supervisorScope {
         val featuredDeferred = async {
-            safeFetchBooksForHome(
-                query = FEATURED_SECTION.query,
-                maxResults = FEATURED_SECTION.maxResults,
-                orderBy = FEATURED_SECTION.orderBy,
-                filter = FEATURED_SECTION.filter
-            )
+            fetchFeaturedBooks()
         }
 
         val sections = SECTION_CONFIGS.map { config ->
@@ -217,6 +228,50 @@ class BookRepositoryImpl @Inject constructor(
             categories = CATEGORIES,
             sections = sections.filter { it.books.isNotEmpty() }
         )
+    }
+
+    private suspend fun fetchFeaturedBooks(): List<Book> {
+        val collected = LinkedHashMap<String, Book>()
+
+        for (candidate in FEATURED_QUERY_CANDIDATES) {
+            val books = safeFetchBooksForHome(
+                query = candidate.query,
+                maxResults = candidate.maxResults,
+                orderBy = candidate.orderBy,
+                filter = candidate.filter
+            )
+                .asSequence()
+                .filter { it.isRecognizableFeaturedBook() }
+                .toList()
+
+            books.forEach { book ->
+                val key = book.id.ifBlank { "${book.title}_${book.authors.joinToString()}" }
+                collected.putIfAbsent(key, book)
+            }
+
+            if (collected.size >= FEATURED_SECTION.maxResults) break
+        }
+
+        if (collected.isEmpty()) {
+            return safeFetchBooksForHome(
+                query = FEATURED_SECTION.query,
+                maxResults = FEATURED_SECTION.maxResults,
+                orderBy = FEATURED_SECTION.orderBy,
+                filter = FEATURED_SECTION.filter
+            )
+        }
+
+        return collected.values
+            .toList()
+            .sortedByPopularity()
+            .take(FEATURED_SECTION.maxResults)
+    }
+
+    private fun Book.isRecognizableFeaturedBook(): Boolean {
+        if (title.equals("Unknown Title", ignoreCase = true)) return false
+        if (authors.isEmpty()) return false
+        if (thumbnail.isNullOrBlank()) return false
+        return ratingsCount >= MIN_FEATURED_RATINGS || (rating ?: 0.0) >= MIN_FEATURED_RATING
     }
 
     private suspend fun safeFetchBooksForHome(
@@ -333,14 +388,47 @@ class BookRepositoryImpl @Inject constructor(
     private companion object {
         private const val SUBJECT_QUERY_PREFIX = "subject:"
         private const val DEFAULT_OPEN_LIBRARY_QUERY = "book"
+        private const val MIN_FEATURED_RATINGS = 25
+        private const val MIN_FEATURED_RATING = 4.0
 
         private val FEATURED_SECTION = SectionConfig(
             id = "featured",
             title = "Featured",
-            query = "bestseller",
+            query = "subject:classic literature",
             maxResults = 10,
             layout = SectionLayout.Carousel,
+            orderBy = ORDER_BY_POPULAR,
             filter = "ebooks"
+        )
+
+        private val FEATURED_QUERY_CANDIDATES = listOf(
+            SectionConfig(
+                id = "featured_classics",
+                title = "Featured",
+                query = "subject:classic literature",
+                maxResults = 12,
+                layout = SectionLayout.Carousel,
+                orderBy = ORDER_BY_POPULAR,
+                filter = "ebooks"
+            ),
+            SectionConfig(
+                id = "featured_famous_fiction",
+                title = "Featured",
+                query = "subject:fiction",
+                maxResults = 12,
+                layout = SectionLayout.Carousel,
+                orderBy = ORDER_BY_POPULAR,
+                filter = "ebooks"
+            ),
+            SectionConfig(
+                id = "featured_world_literature",
+                title = "Featured",
+                query = "subject:world literature",
+                maxResults = 12,
+                layout = SectionLayout.Carousel,
+                orderBy = ORDER_BY_POPULAR,
+                filter = "ebooks"
+            )
         )
 
         private val SECTION_CONFIGS = listOf(

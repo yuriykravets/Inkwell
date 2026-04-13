@@ -23,10 +23,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -38,6 +41,7 @@ class BookRepositoryImpl @Inject constructor(
     private val openLibraryService: OpenLibraryService,
     private val favoriteBookDao: FavoriteBookDao
 ) : BookRepository {
+    private val homeFeedState = MutableStateFlow<Result<HomeFeed>?>(null)
 
     override fun observePagedBooks(
         query: String,
@@ -151,19 +155,31 @@ class BookRepositoryImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    override suspend fun preloadHomeFeed() {
+        if (homeFeedState.value is Result.Success) return
+
+        homeFeedState.value = Result.Loading
+        homeFeedState.value = safeApiCall { buildHomeFeed() }
+    }
+
     override fun observeHomeFeed(): Flow<Result<HomeFeed>> = flow {
-        emit(Result.Loading)
-        when (val result = safeApiCall { buildHomeFeed() }) {
-            is Result.Success -> {
-                emitAll(
-                    observeFavoriteIds().map { favoriteIds ->
-                        Result.Success(result.data.markFavorites(favoriteIds))
-                    }
-                )
-            }
-            is Result.Error -> emit(result)
-            Result.Loading -> Unit
+        val hasCachedHome = homeFeedState.value is Result.Success
+        if (!hasCachedHome) {
+            emit(Result.Loading)
+            preloadHomeFeed()
         }
+
+        emitAll(
+            homeFeedState
+                .filterNotNull()
+                .combine(observeFavoriteIds()) { cachedResult, favoriteIds ->
+                    when (cachedResult) {
+                        is Result.Success -> Result.Success(cachedResult.data.markFavorites(favoriteIds))
+                        is Result.Error -> cachedResult
+                        Result.Loading -> Result.Loading
+                    }
+                }
+        )
     }.flowOn(Dispatchers.IO)
 
     override fun observeFavoriteBooks(): Flow<List<Book>> =

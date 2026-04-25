@@ -26,6 +26,8 @@
     <string name="home_intro_supporting">Discover featured titles, popular categories, and continue where you left off in one place.</string>
     <string name="home_ai_assistant_action">Ask AI for recommendations</string>
     <string name="home_ai_fab_title">AI Book recommendation</string>
+    <string name="home_streak_banner_title">🔥 %1$d-day reading streak</string>
+    <string name="home_streak_banner_subtitle">%1$d minutes read today. Tap to view stats.</string>
     <string name="home_category_shelf_title">Trending in %1$s</string>
     <string name="home_category_error">Unable to load this category right now.</string>
     <string name="details_about_book">About this book</string>
@@ -74,6 +76,14 @@
     <string name="format_fb2">FB2 book</string>
     <string name="format_unknown">Document</string>
     <string name="book_details">Book details</string>
+    <string name="stats_title">Reading stats</string>
+    <string name="stats_streak_title">Keep your streak alive</string>
+    <string name="stats_streak_days">🔥 %1$d days in a row</string>
+    <string name="stats_today_minutes">Today: %1$d min</string>
+    <string name="stats_books_read">Books</string>
+    <string name="stats_pages_read">Pages</string>
+    <string name="stats_hours_read">Hours</string>
+    <string name="stats_weekly_progress">Last 7 days</string>
     <string name="ai_assistant_title">AI Book Assistant</string>
     <string name="ai_assistant_subtitle">Basic AI mode. %1$d requests left today.</string>
     <string name="ai_assistant_subtitle_premium">Premium AI mode with no request limits.</string>

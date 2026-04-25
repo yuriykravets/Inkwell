@@ -4,7 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 data class BookShelfDto(
     @SerializedName("totalItems") val totalItems: Int? = null,
-    @SerializedName("items") val items: List<ItemDto>? = null
+    @SerializedName("items") val items: List<ItemDto>? = null,
+    val bookItem: ItemDto? = null
 )
 
 data class ItemDto(

@@ -26,6 +26,8 @@
     <string name="home_intro_supporting">Відкривайте добірки, популярні категорії та продовжуйте читання з того місця, де зупинились.</string>
     <string name="home_ai_assistant_action">Запитати AI про рекомендації</string>
     <string name="home_ai_fab_title">AI рекомендації книг</string>
+    <string name="home_streak_banner_title">🔥 %1$d-денна серія читання</string>
+    <string name="home_streak_banner_subtitle">Сьогодні прочитано %1$d хв. Натисніть, щоб переглянути статистику.</string>
     <string name="home_category_shelf_title">Популярне в категорії %1$s</string>
     <string name="home_category_error">Не вдалося завантажити цю категорію.</string>
     <string name="details_about_book">Про книгу</string>
@@ -74,6 +76,14 @@
     <string name="format_fb2">Електронна книга (FB2)</string>
     <string name="format_unknown">Документ</string>
     <string name="book_details">Про книгу</string>
+    <string name="stats_title">Статистика читання</string>
+    <string name="stats_streak_title">Підтримуйте свою серію</string>
+    <string name="stats_streak_days">🔥 %1$d днів поспіль</string>
+    <string name="stats_today_minutes">Сьогодні: %1$d хв</string>
+    <string name="stats_books_read">Книги</string>
+    <string name="stats_pages_read">Сторінки</string>
+    <string name="stats_hours_read">Години</string>
+    <string name="stats_weekly_progress">Останні 7 днів</string>
     <string name="ai_assistant_title">AI помічник для книг</string>
     <string name="ai_assistant_subtitle">Базовий режим AI. Залишилось запитів на сьогодні: %1$d.</string>
     <string name="ai_assistant_subtitle_premium">Преміум режим AI без обмежень.</string>

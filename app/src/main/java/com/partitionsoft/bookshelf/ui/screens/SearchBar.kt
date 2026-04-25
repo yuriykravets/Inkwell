@@ -37,10 +37,8 @@ import com.example.bookshelf.R
 fun ClosedAppBar(
     onSearchClicked: () -> Unit,
     onFavoritesClicked: () -> Unit,
+    onLibraryClicked: () -> Unit,
     onLibraryClicked: () -> Unit
-) {
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
             titleContentColor = MaterialTheme.colorScheme.onSurface,
@@ -60,9 +58,9 @@ fun ClosedAppBar(
                     contentDescription = stringResource(id = R.string.favorites_title)
                 )
             }
-            IconButton(onClick = onSearchClicked) {
+            IconButton(onClick = onStatsClicked) {
                 Icon(
-                    imageVector = Icons.Filled.Search,
+                    imageVector = Icons.Filled.Insights,
                     contentDescription = stringResource(id = R.string.search_action)
                 )
             }

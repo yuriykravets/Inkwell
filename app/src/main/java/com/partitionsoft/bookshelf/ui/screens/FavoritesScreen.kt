@@ -32,7 +32,7 @@ import com.partitionsoft.bookshelf.ui.theme.LocalSpacing
 
 @Composable
 fun FavoritesRoute(
-    onBackClicked: () -> Unit,
+    onBackClicked: (() -> Unit)?,
     onBookClicked: (Book) -> Unit,
     viewModel: FavoritesViewModel = hiltViewModel()
 ) {

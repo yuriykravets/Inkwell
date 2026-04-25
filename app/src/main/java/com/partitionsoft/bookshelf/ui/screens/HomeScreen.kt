@@ -1,10 +1,14 @@
 package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -26,6 +30,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +43,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +52,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import com.example.bookshelf.R
 import com.partitionsoft.bookshelf.domain.model.Book
 import com.partitionsoft.bookshelf.domain.model.BookCategory
@@ -74,7 +83,8 @@ fun HomeScreen(
     onSearchRetry: () -> Unit,
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
     onAiAssistantClicked: () -> Unit,
-    onContinueReadingClicked: (Long) -> Unit
+    onContinueReadingClicked: (Long) -> Unit,
+    onStreakClicked: () -> Unit
 ) {
     val hasHomeContent = homeUiState.hasRenderableContent()
 
@@ -116,6 +126,7 @@ fun HomeScreen(
             onBrowseRequested = onBrowseRequested,
             onAiAssistantClicked = onAiAssistantClicked,
             onContinueReadingClicked = onContinueReadingClicked,
+            onStreakClicked = onStreakClicked,
             onRetryHome = retryAction
         )
     }
@@ -222,8 +233,14 @@ private fun HomeFeedList(
     onBrowseRequested: (title: String, query: String, orderBy: String?, filter: String?) -> Unit,
     onAiAssistantClicked: () -> Unit,
     onContinueReadingClicked: (Long) -> Unit,
+    onStreakClicked: () -> Unit,
     onRetryHome: () -> Unit
 ) {
+    var streakBannerDismissed by rememberSaveable(
+        homeUiState.streakDays,
+        homeUiState.todayMinutes
+    ) { mutableStateOf(false) }
+
     val selectedCategory =
         remember(homeUiState.categories, categoryShelfUiState.selectedCategoryId) {
             homeUiState.categories.firstOrNull { it.id == categoryShelfUiState.selectedCategoryId }
@@ -244,6 +261,40 @@ private fun HomeFeedList(
                     isQuotaIssue = error.isQuotaLimitIssue(),
                     onRetry = onRetryHome
                 )
+            }
+        }
+
+        if (homeUiState.streakDays > 0) {
+            item(key = "home_streak_banner") {
+                val streakBannerVisibleState = remember(homeUiState.streakDays, homeUiState.todayMinutes) {
+                    MutableTransitionState(false).apply {
+                        targetState = true
+                    }
+                }
+                LaunchedEffect(streakBannerDismissed) {
+                    streakBannerVisibleState.targetState = !streakBannerDismissed
+                }
+
+                AnimatedVisibility(
+                    visibleState = streakBannerVisibleState,
+                    enter = fadeIn(animationSpec = tween(durationMillis = 240)) +
+                            slideInVertically(
+                                initialOffsetY = { fullHeight -> fullHeight / 3 },
+                                animationSpec = tween(durationMillis = 240)
+                            ),
+                    exit = fadeOut(animationSpec = tween(durationMillis = 180)) +
+                            slideOutVertically(
+                                targetOffsetY = { fullHeight -> fullHeight / 3 },
+                                animationSpec = tween(durationMillis = 180)
+                            )
+                ) {
+                    HomeStreakBanner(
+                        streakDays = homeUiState.streakDays,
+                        todayMinutes = homeUiState.todayMinutes,
+                        onOpenStats = onStreakClicked,
+                        onDismiss = { streakBannerDismissed = true }
+                    )
+                }
             }
         }
 
@@ -298,6 +349,49 @@ private fun HomeFeedList(
                 onFavoriteClicked = onFavoriteClicked,
                 onBrowseRequested = onBrowseRequested
             )
+        }
+    }
+}
+
+@Composable
+private fun HomeStreakBanner(
+    streakDays: Int,
+    todayMinutes: Int,
+    onOpenStats: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpenStats),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.home_streak_banner_title, streakDays),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = stringResource(id = R.string.home_streak_banner_subtitle, todayMinutes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = stringResource(id = R.string.clear_action),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
     }
 }

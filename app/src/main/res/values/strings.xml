@@ -84,10 +84,12 @@
     <string name="stats_pages_read">Pages</string>
     <string name="stats_hours_read">Hours</string>
     <string name="stats_weekly_progress">Last 7 days</string>
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_read">Read</string>
+    <string name="bottom_nav_stats">Stats</string>
     <string name="ai_assistant_title">AI Book Assistant</string>
     <string name="ai_assistant_subtitle">Basic AI mode. %1$d requests left today.</string>
     <string name="ai_assistant_subtitle_premium">Premium AI mode with no request limits.</string>
-    <string name="ai_assistant_subtitle_unlimited">Unlimited recommendations in this version (local smart mode).</string>
     <string name="ai_assistant_welcome">Tell me what mood, genre, or goal you have.</string>
     <string name="ai_assistant_found_recommendations">I found %1$d picks for you.</string>
     <string name="ai_assistant_load_error">I could not load suggestions right now. Please try again.</string>

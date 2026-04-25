@@ -44,7 +44,7 @@ import kotlin.math.max
 
 @Composable
 fun StatsRoute(
-    onBackClicked: () -> Unit,
+    onBackClicked: (() -> Unit)?,
     viewModel: StatsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

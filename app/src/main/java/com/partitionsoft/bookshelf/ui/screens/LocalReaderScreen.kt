@@ -87,6 +87,13 @@ fun LocalReaderRoute(
     viewModel: LocalReaderViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    ReadingSessionLifecycleEffect(
+        enabled = state is LocalReaderUiState.Ready,
+        onSessionStart = viewModel::onReadingSessionStart,
+        onSessionStop = viewModel::onReadingSessionStop
+    )
+
     var isFullscreen by rememberSaveable { mutableStateOf(false) }
     val onToggleFullscreen = { isFullscreen = !isFullscreen }
 

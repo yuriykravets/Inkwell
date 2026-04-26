@@ -9,6 +9,32 @@ import java.util.TimeZone
 class ReadingStatsCalculatorTest {
 
     @Test
+    fun `books read ignores sessions without reading progress`() {
+        val sessions = listOf(
+            session(bookRef = "google:123", pagesReached = 0),
+            session(bookRef = "local:1", pagesReached = 12)
+        )
+
+        val booksRead = ReadingStatsCalculator.calculateBooksRead(sessions)
+
+        assertEquals(1, booksRead)
+    }
+
+    @Test
+    fun `books read counts unique books with progress only`() {
+        val sessions = listOf(
+            session(bookRef = "local:1", pagesReached = 5),
+            session(bookRef = "local:1", pagesReached = 15),
+            session(bookRef = "local:2", pagesReached = 1),
+            session(bookRef = "google:xyz", pagesReached = 0)
+        )
+
+        val booksRead = ReadingStatsCalculator.calculateBooksRead(sessions)
+
+        assertEquals(2, booksRead)
+    }
+
+    @Test
     fun `streak is alive when user read yesterday but not yet today`() {
         withUtcTimeZone {
             val now = utcMillis(2026, Calendar.APRIL, 18, 10, 0)
@@ -58,11 +84,12 @@ class ReadingStatsCalculatorTest {
     private fun session(
         bookRef: String,
         durationSeconds: Long = 600,
-        endedAt: Long
+        pagesReached: Int = 10,
+        endedAt: Long = System.currentTimeMillis()
     ) = ReadingSessionEntity(
         bookRef = bookRef,
         bookTitle = null,
-        pagesReached = 10,
+        pagesReached = pagesReached,
         durationSeconds = durationSeconds,
         startedAtMillis = endedAt - durationSeconds * 1000,
         endedAtMillis = endedAt

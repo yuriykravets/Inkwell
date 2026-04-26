@@ -23,7 +23,7 @@
     <string name="home_continue_chapter">Chapter %1$d</string>
     <string name="home_categories_title">Browse by category</string>
     <string name="home_intro_title">Books of all time. Read free and enjoy.</string>
-    <string name="home_intro_supporting">Discover featured titles, popular categories, and continue where you left off in one place.</string>
+    <string name="home_intro_supporting">Discover page-turners, popular categories, and continue where you left off in one place.</string>
     <string name="home_ai_assistant_action">Ask AI for recommendations</string>
     <string name="home_ai_fab_title">AI Book recommendation</string>
     <string name="home_streak_banner_title">🔥 %1$d-day reading streak</string>

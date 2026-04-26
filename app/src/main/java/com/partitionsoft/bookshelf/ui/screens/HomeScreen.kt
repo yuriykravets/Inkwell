@@ -308,15 +308,6 @@ private fun HomeFeedList(
             }
         }
 
-        if (homeUiState.featured.isNotEmpty()) {
-            item(key = "featured") {
-                SectionHeader(title = stringResource(id = R.string.home_featured_title))
-                FeaturedSection(
-                    books = homeUiState.featured, onBookClicked = onBookClicked,
-                    onFavoriteClicked = onFavoriteClicked
-                )
-            }
-        }
         if (homeUiState.categories.isNotEmpty()) {
             item(key = "categories_block") {
                 SectionHeader(title = stringResource(id = R.string.home_categories_title))
@@ -840,7 +831,7 @@ private fun HomeSection(
 }
 
 private fun sectionQuery(section: BookSection): String = when (section.id) {
-    "android_trending" -> "android development"
+    "old_classics" -> "subject:classic literature"
     "design_spotlight" -> "design thinking"
     "business_moves" -> "subject:business"
     "science_breakthroughs" -> "subject:science"
@@ -852,7 +843,6 @@ private fun sectionOrderBy(section: BookSection): String? = when (section.id) {
 }
 
 private fun sectionFilter(section: BookSection): String? = when (section.id) {
-    "featured" -> "ebooks"
     else -> null
 }
 

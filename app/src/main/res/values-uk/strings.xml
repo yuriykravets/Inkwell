@@ -23,7 +23,7 @@
     <string name="home_continue_chapter">Розділ %1$d</string>
     <string name="home_categories_title">Перегляд за категоріями</string>
     <string name="home_intro_title">Книги на всі часи. Читайте безкоштовно та насолоджуйтесь.</string>
-    <string name="home_intro_supporting">Відкривайте добірки, популярні категорії та продовжуйте читання з того місця, де зупинились.</string>
+    <string name="home_intro_supporting">Відкривайте захопливі детективи, популярні категорії та продовжуйте читання з того місця, де зупинились.</string>
     <string name="home_ai_assistant_action">Запитати AI про рекомендації</string>
     <string name="home_ai_fab_title">AI рекомендації книг</string>
     <string name="home_streak_banner_title">🔥 %1$d-денна серія читання</string>

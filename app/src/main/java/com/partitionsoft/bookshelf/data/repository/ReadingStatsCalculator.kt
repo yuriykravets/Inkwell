@@ -74,7 +74,12 @@ internal object ReadingStatsCalculator {
     }
 
     fun calculateBooksRead(sessions: List<ReadingSessionEntity>): Int =
-        sessions.map { it.bookRef }.distinct().size
+        sessions
+            .asSequence()
+            .filter { it.pagesReached > 0 }
+            .map { it.bookRef }
+            .distinct()
+            .count()
 
     fun calculatePagesRead(sessions: List<ReadingSessionEntity>): Int =
         sessions

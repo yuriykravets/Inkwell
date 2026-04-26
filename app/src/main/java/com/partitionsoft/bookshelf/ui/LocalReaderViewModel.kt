@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.partitionsoft.bookshelf.domain.model.ReaderDocument
 import com.partitionsoft.bookshelf.domain.model.ReaderDocumentFormat
+import com.partitionsoft.bookshelf.domain.model.ReadingSessionRecord
+import com.partitionsoft.bookshelf.domain.repository.ReadingStatsRepository
 import com.partitionsoft.bookshelf.domain.repository.ReaderRepository
 import com.partitionsoft.bookshelf.ui.navigation.BooksDestinations
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,13 +26,18 @@ sealed interface LocalReaderUiState {
 @HiltViewModel
 class LocalReaderViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val readerRepository: ReaderRepository
+    private val readerRepository: ReaderRepository,
+    private val readingStatsRepository: ReadingStatsRepository
 ) : ViewModel() {
 
     private val documentId: Long? = savedStateHandle[BooksDestinations.DOCUMENT_ID_ARG]
 
     private val _uiState = MutableStateFlow<LocalReaderUiState>(LocalReaderUiState.Loading)
     val uiState: StateFlow<LocalReaderUiState> = _uiState.asStateFlow()
+
+    private var sessionStartedAtMillis: Long? = null
+    private var activeDocument: ReaderDocument? = null
+    private var pagesReachedInSession: Int = 0
 
     init {
         loadDocument()
@@ -53,10 +60,43 @@ class LocalReaderViewModel @Inject constructor(
     }
 
     fun updateProgress(location: String) {
+        val reached = location.toIntOrNull()?.plus(1) ?: 0
+        pagesReachedInSession = maxOf(pagesReachedInSession, reached)
         viewModelScope.launch {
             val safeDocumentId = documentId ?: return@launch
             readerRepository.updateProgress(safeDocumentId, location)
         }
+    }
+
+    fun onReadingSessionStart() {
+        if (sessionStartedAtMillis != null) return
+        val document = (uiState.value as? LocalReaderUiState.Ready)?.document ?: return
+        activeDocument = document
+        pagesReachedInSession = document.lastLocation?.toIntOrNull()?.plus(1)?.coerceAtLeast(0) ?: 0
+        sessionStartedAtMillis = System.currentTimeMillis()
+    }
+
+    fun onReadingSessionStop() {
+        val startedAt = sessionStartedAtMillis ?: return
+        val document = activeDocument ?: (uiState.value as? LocalReaderUiState.Ready)?.document ?: return
+        sessionStartedAtMillis = null
+        activeDocument = null
+
+        val endedAt = System.currentTimeMillis()
+        val durationSeconds = ((endedAt - startedAt) / 1000L).coerceAtLeast(1L)
+        viewModelScope.launch {
+            readingStatsRepository.recordReadingSession(
+                ReadingSessionRecord(
+                    bookRef = "local:${document.id}",
+                    bookTitle = document.title,
+                    pagesReached = pagesReachedInSession,
+                    durationSeconds = durationSeconds,
+                    startedAtMillis = startedAt,
+                    endedAtMillis = endedAt
+                )
+            )
+        }
+        pagesReachedInSession = 0
     }
 }
 

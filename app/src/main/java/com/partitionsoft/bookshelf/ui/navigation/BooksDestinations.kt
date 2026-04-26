@@ -6,6 +6,7 @@ object BooksDestinations {
     const val HOME_ROUTE = "home"
     const val LIBRARY_ROUTE = "library"
     const val FAVORITES_ROUTE = "favorites"
+    const val STATS_ROUTE = "stats"
     const val AI_ASSISTANT_ROUTE = "ai_assistant"
     const val DETAILS_ROUTE = "details/{bookId}"
     const val READER_ROUTE = "reader/{bookId}"

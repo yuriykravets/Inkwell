@@ -2,14 +2,12 @@ package com.partitionsoft.bookshelf.ui.screens
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
@@ -36,8 +34,7 @@ import com.example.bookshelf.R
 @Composable
 fun ClosedAppBar(
     onSearchClicked: () -> Unit,
-    onFavoritesClicked: () -> Unit,
-    onLibraryClicked: () -> Unit
+    onFavoritesClicked: () -> Unit
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -48,12 +45,6 @@ fun ClosedAppBar(
         ),
         title = { Text(text = stringResource(id = R.string.app_name)) },
         actions = {
-            IconButton(onClick = onLibraryClicked) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                    contentDescription = stringResource(id = R.string.library_title)
-                )
-            }
             IconButton(onClick = onFavoritesClicked) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,

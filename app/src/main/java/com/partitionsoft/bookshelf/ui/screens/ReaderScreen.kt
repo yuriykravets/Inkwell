@@ -56,6 +56,12 @@ fun ReaderRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    ReadingSessionLifecycleEffect(
+        enabled = uiState is ReaderUiState.Ready,
+        onSessionStart = viewModel::onReadingSessionStart,
+        onSessionStop = viewModel::onReadingSessionStop
+    )
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()

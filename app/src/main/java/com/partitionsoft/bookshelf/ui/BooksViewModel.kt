@@ -7,6 +7,7 @@ import com.partitionsoft.bookshelf.domain.model.BookCategory
 import com.partitionsoft.bookshelf.domain.model.BookSection
 import com.partitionsoft.bookshelf.domain.model.ReaderDocument
 import com.partitionsoft.bookshelf.domain.repository.BookRepository
+import com.partitionsoft.bookshelf.domain.repository.ReadingStatsRepository
 import com.partitionsoft.bookshelf.domain.repository.ReaderRepository
 import com.partitionsoft.bookshelf.domain.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,8 @@ data class HomeUiState(
     val sections: List<BookSection> = emptyList(),
     val categories: List<BookCategory> = emptyList(),
     val continueReading: ReaderDocument? = null,
+    val streakDays: Int = 0,
+    val todayMinutes: Int = 0,
     val error: Throwable? = null
 )
 
@@ -45,7 +48,8 @@ data class CategoryShelfUiState(
 @HiltViewModel
 class BooksViewModel @Inject constructor(
     private val booksRepository: BookRepository,
-    private val readerRepository: ReaderRepository
+    private val readerRepository: ReaderRepository,
+    private val readingStatsRepository: ReadingStatsRepository
 ) : ViewModel() {
 
     private val _searchUiState = MutableStateFlow<BooksUiState>(BooksUiState.Loading)
@@ -69,6 +73,7 @@ class BooksViewModel @Inject constructor(
 
     init {
         observeContinueReading()
+        observeStreak()
         observeHomeFeed()
         getBooks()
     }
@@ -131,13 +136,15 @@ class BooksViewModel @Inject constructor(
                 when (result) {
                     is Result.Loading -> _homeUiState.update { it.copy(isLoading = true, error = null) }
                     is Result.Success -> {
-                        val continueReading = _homeUiState.value.continueReading
+                        val currentState = _homeUiState.value
                         _homeUiState.value = HomeUiState(
                             isLoading = false,
                             featured = result.data.featured,
                             sections = result.data.sections,
                             categories = result.data.categories,
-                            continueReading = continueReading,
+                            continueReading = currentState.continueReading,
+                            streakDays = currentState.streakDays,
+                            todayMinutes = currentState.todayMinutes,
                             error = null
                         )
                         val defaultCategory = result.data.categories.firstOrNull()
@@ -159,6 +166,20 @@ class BooksViewModel @Inject constructor(
             .onEach { latest ->
                 _homeUiState.update { current ->
                     current.copy(continueReading = latest)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeStreak() {
+        readingStatsRepository
+            .observeReadingStats()
+            .onEach { stats ->
+                _homeUiState.update { current ->
+                    current.copy(
+                        streakDays = stats.streakDays,
+                        todayMinutes = stats.todayMinutes
+                    )
                 }
             }
             .launchIn(viewModelScope)

@@ -7,14 +7,17 @@ import androidx.room.RoomDatabase
     entities = [
         FavoriteBookEntity::class,
         ReaderDocumentEntity::class,
-        ReaderProgressEntity::class
+        ReaderProgressEntity::class,
+        ReadingSessionEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class BooksDatabase : RoomDatabase() {
     abstract fun favoriteBookDao(): FavoriteBookDao
 
     abstract fun readerDocumentDao(): ReaderDocumentDao
+
+    abstract fun readingSessionDao(): ReadingSessionDao
 }
 

@@ -202,10 +202,6 @@ class BookRepositoryImpl @Inject constructor(
     override suspend fun isFavorite(bookId: String): Boolean = favoriteBookDao.isFavorite(bookId)
 
     private suspend fun buildHomeFeed(): HomeFeed = supervisorScope {
-        val featuredDeferred = async {
-            fetchFeaturedBooks()
-        }
-
         val sections = SECTION_CONFIGS.map { config ->
             async {
                 val books = safeFetchBooksForHome(
@@ -224,54 +220,10 @@ class BookRepositoryImpl @Inject constructor(
         }.awaitAll()
 
         HomeFeed(
-            featured = featuredDeferred.await(),
+            featured = emptyList(),
             categories = CATEGORIES,
             sections = sections.filter { it.books.isNotEmpty() }
         )
-    }
-
-    private suspend fun fetchFeaturedBooks(): List<Book> {
-        val collected = LinkedHashMap<String, Book>()
-
-        for (candidate in FEATURED_QUERY_CANDIDATES) {
-            val books = safeFetchBooksForHome(
-                query = candidate.query,
-                maxResults = candidate.maxResults,
-                orderBy = candidate.orderBy,
-                filter = candidate.filter
-            )
-                .asSequence()
-                .filter { it.isRecognizableFeaturedBook() }
-                .toList()
-
-            books.forEach { book ->
-                val key = book.id.ifBlank { "${book.title}_${book.authors.joinToString()}" }
-                collected.putIfAbsent(key, book)
-            }
-
-            if (collected.size >= FEATURED_SECTION.maxResults) break
-        }
-
-        if (collected.isEmpty()) {
-            return safeFetchBooksForHome(
-                query = FEATURED_SECTION.query,
-                maxResults = FEATURED_SECTION.maxResults,
-                orderBy = FEATURED_SECTION.orderBy,
-                filter = FEATURED_SECTION.filter
-            )
-        }
-
-        return collected.values
-            .toList()
-            .sortedByPopularity()
-            .take(FEATURED_SECTION.maxResults)
-    }
-
-    private fun Book.isRecognizableFeaturedBook(): Boolean {
-        if (title.equals("Unknown Title", ignoreCase = true)) return false
-        if (authors.isEmpty()) return false
-        if (thumbnail.isNullOrBlank()) return false
-        return ratingsCount >= MIN_FEATURED_RATINGS || (rating ?: 0.0) >= MIN_FEATURED_RATING
     }
 
     private suspend fun safeFetchBooksForHome(
@@ -388,54 +340,12 @@ class BookRepositoryImpl @Inject constructor(
     private companion object {
         private const val SUBJECT_QUERY_PREFIX = "subject:"
         private const val DEFAULT_OPEN_LIBRARY_QUERY = "book"
-        private const val MIN_FEATURED_RATINGS = 25
-        private const val MIN_FEATURED_RATING = 4.0
-
-        private val FEATURED_SECTION = SectionConfig(
-            id = "featured",
-            title = "Featured",
-            query = "subject:classic literature",
-            maxResults = 10,
-            layout = SectionLayout.Carousel,
-            orderBy = ORDER_BY_POPULAR,
-            filter = "ebooks"
-        )
-
-        private val FEATURED_QUERY_CANDIDATES = listOf(
-            SectionConfig(
-                id = "featured_classics",
-                title = "Featured",
-                query = "subject:classic literature",
-                maxResults = 12,
-                layout = SectionLayout.Carousel,
-                orderBy = ORDER_BY_POPULAR,
-                filter = "ebooks"
-            ),
-            SectionConfig(
-                id = "featured_famous_fiction",
-                title = "Featured",
-                query = "subject:fiction",
-                maxResults = 12,
-                layout = SectionLayout.Carousel,
-                orderBy = ORDER_BY_POPULAR,
-                filter = "ebooks"
-            ),
-            SectionConfig(
-                id = "featured_world_literature",
-                title = "Featured",
-                query = "subject:world literature",
-                maxResults = 12,
-                layout = SectionLayout.Carousel,
-                orderBy = ORDER_BY_POPULAR,
-                filter = "ebooks"
-            )
-        )
 
         private val SECTION_CONFIGS = listOf(
             SectionConfig(
-                id = "android_trending",
-                title = "Trending on Android",
-                query = "android development",
+                id = "old_classics",
+                title = "Old Classics",
+                query = "subject:classic literature",
                 maxResults = 10,
                 layout = SectionLayout.Horizontal
             ),

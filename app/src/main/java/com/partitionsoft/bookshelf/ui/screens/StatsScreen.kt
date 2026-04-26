@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -81,8 +83,11 @@ private fun StatsContent(
     modifier: Modifier = Modifier
 ) {
     val spacing = LocalSpacing.current
+    val scrollState = rememberScrollState()
     Column(
-        modifier = modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
+        modifier = modifier
+            .padding(horizontal = spacing.md, vertical = spacing.sm)
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(spacing.sm)
     ) {
         StreakCard(
@@ -134,7 +139,10 @@ private fun StreakCard(streakDays: Int, todayMinutes: Int) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             Text(
                 text = stringResource(id = R.string.stats_streak_title),
                 style = MaterialTheme.typography.labelLarge,
@@ -170,7 +178,11 @@ private fun MetricCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(text = value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,

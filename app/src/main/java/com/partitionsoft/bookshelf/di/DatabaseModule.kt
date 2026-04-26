@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.partitionsoft.bookshelf.data.local.BooksDatabase
 import com.partitionsoft.bookshelf.data.local.FavoriteBookDao
+import com.partitionsoft.bookshelf.data.local.ReadingSessionDao
 import com.partitionsoft.bookshelf.data.local.ReaderDocumentDao
 import dagger.Module
 import dagger.Provides
@@ -36,5 +37,10 @@ object DatabaseModule {
     @Singleton
     fun provideReaderDocumentDao(database: BooksDatabase): ReaderDocumentDao =
         database.readerDocumentDao()
+
+    @Provides
+    @Singleton
+    fun provideReadingSessionDao(database: BooksDatabase): ReadingSessionDao =
+        database.readingSessionDao()
 }
 

@@ -59,7 +59,7 @@ private val supportedReaderMimeTypes = arrayOf(
 
 @Composable
 fun LibraryRoute(
-    onBackClicked: () -> Unit,
+    onBackClicked: (() -> Unit)?,
     onOpenDocument: (Long) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
